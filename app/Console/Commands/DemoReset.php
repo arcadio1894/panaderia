@@ -68,6 +68,8 @@ class DemoReset extends Command
 
             // Infra
             'failed_jobs',
+
+            'materials'
         );
 
         $keepUsers = (bool) $this->option('keep-users');
