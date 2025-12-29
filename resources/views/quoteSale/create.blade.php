@@ -95,7 +95,7 @@
                                 <label for="description">Código de cotización </label>
                                 <input type="text" id="codeQuote" readonly value="{{ $codeQuote }}" onkeyup="mayus(this);" name="code_quote" class="form-control form-control-sm">
                             </div>
-                            @hasanyrole('logistic|admin|principal|quote_single')
+
                             <div class="col-md-4" id="sandbox-container">
                                 <label for="date_quote">Fecha de cotización </label>
                                 <div class="input-daterange" id="datepicker">
@@ -108,9 +108,7 @@
                                     <input type="text" class="form-control form-control-sm date-range-filter" id="date_validate" name="date_validate">
                                 </div>
                             </div>
-                            @endhasanyrole
 
-                            @hasanyrole('logistic|admin|principal|quote_single')
                             <div class="col-md-4">
                                 <label for="paymentQuote">Forma de pago </label>
                                 {{--<input type="hidden" onkeyup="mayus(this);" name="way_to_pay" class="form-control form-control-sm">--}}
@@ -121,7 +119,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            @endhasanyrole
+
                             <div class="col-md-4">
                                 <label for="description">Tiempo de entrega </label>
                                 <div class="input-group input-group-sm mb-3">
@@ -132,7 +130,7 @@
                                 </div>
 
                             </div>
-                            {{--@hasanyrole('logistic|admin')--}}
+
                             <div class="col-md-4">
                                 <label for="customer_id">Cliente</label>
                                 <div class="input-group input-group-sm">
@@ -160,7 +158,7 @@
                                 <textarea class="textarea_observations" id="observations" name="observations" placeholder="Place some text here"
                                           style="width: 100%; height: 200px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;"></textarea>
                             </div>
-                            {{--@endhasanyrole--}}
+
                         </div>
 
                     </div>

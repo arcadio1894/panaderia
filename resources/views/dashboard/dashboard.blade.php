@@ -58,7 +58,7 @@
 @endsection
 
 @section('content')
-    @hasanyrole('admin|almacen|principal')
+    @can('showboxes_dashboard')
     <div class="row">
         @can('list_customer')
         <div class="col-lg-3 col-6">
@@ -180,11 +180,11 @@
         <!-- ./col -->
         @endcan
     </div>
-    @endhasanyrole
+    @endcan
 @endsection
 
 @section('content-report')
-    @hasanyrole('admin|almacen|principal')
+    @can('showBoxAlmacen_dashboard')
     <div class="row">
         <div class="col-md-4">
             <div class="card card-info">
@@ -337,7 +337,8 @@
             </div>
         </div>
     </div>
-    @endhasanyrole
+    @endcan
+    @can('showBoxMetas_dashboard')
     <div class="row">
         <div class="col-lg-6">
             <div class="card card-success">
@@ -393,6 +394,7 @@
             </div>
         </div>
     </div>
+    @endcan
     {{--<div class="row">
         <div class="col-lg-6">
             <div class="card card-warning">
@@ -1248,7 +1250,7 @@
             </div>
         </div>
     </div>--}}
-
+    @can('showBoxGraficosVentas_dashboard')
     <div class="row">
         <div class="col-md-6">
 
@@ -1287,8 +1289,6 @@
             </div>
             <!-- /.card -->
         </div>
-
-
         <div class="col-md-6">
 
             <div class="card bg-gradient-info">
@@ -1334,7 +1334,8 @@
             <!-- /.card -->
         </div>
     </div>
-
+    @endcan
+    @can('showBoxGraficosRRHH_dashboard')
     <div class="row">
         <div class="col-md-12">
             <div class="card card-info">
@@ -1410,10 +1411,8 @@
             </div>
             <!-- /.card -->
         </div>
-
-
-
     </div>
+    @endcan
     <br>
     <template id="previous-page">
         <li class="page-item previous">

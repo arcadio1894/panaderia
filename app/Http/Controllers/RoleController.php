@@ -99,7 +99,15 @@ class RoleController extends Controller
         'inventory' => 'INVENTARIO FISICO',
         'files' => 'IMPORTAR ARCHIVOS',
         'referralGuide' => 'GUIA DE REMISION',
-        'materialSetting' => 'CONFIGURACION DE MATERIALES'
+        'materialSetting' => 'CONFIGURACION DE MATERIALES',
+        'dataGeneral' => 'DATOS GENERAALES',
+        'quoteSale' => 'COTIZACIONES DE VENTA',
+        'promotionLimit' => 'PROMOCIONES CON LIMITE',
+        'puntoVenta' => 'PUNTO DE VENTA',
+        'caja' => 'CAJA',
+        'gananciaDiaria' => 'GANANCIA DIARIA',
+        'metas' => 'METAS',
+        'promotions' => 'PROMOCIONES'
     ];
 
     public function index()
