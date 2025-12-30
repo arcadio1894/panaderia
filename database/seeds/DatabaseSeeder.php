@@ -63,6 +63,8 @@ class DatabaseSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
         Artisan::call('data-generals:sync');
-
+        $this->call(PorcentagesQoteSeeder::class);
+        $this->call(PercentageWorkerSeeder::class);
+        $this->call(TipoVentasSeeder::class);
     }
 }
