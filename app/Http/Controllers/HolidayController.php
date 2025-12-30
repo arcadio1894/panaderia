@@ -114,42 +114,85 @@ class HolidayController extends Controller
     public function generateHolidays()
     {
         DB::beginTransaction();
+
         try {
+            $tz = 'America/Lima';
+            $yearCurrent = Carbon::now($tz)->year;
+            $yearNext = $yearCurrent + 1;
 
-            $yearCurrent = Carbon::now('America/Lima')->year;
-            $yearMax = (int) Holiday::max('year');
+            // ¿Qué años ya existen?
+            $existsCurrent = Holiday::where('year', $yearCurrent)->exists();
+            $existsNext    = Holiday::where('year', $yearNext)->exists();
 
-            if ($yearCurrent+1 == $yearMax)
-            {
-                return response()->json(['message' => 'Lo sentimos, los feriados del próximo año ya fueron creados.'], 422);
+            // Regla: SOLO permitir tener como máximo 1 año por adelantado
+            // Si ya existe el año siguiente, bloquear siempre (hasta que cambie el año actual)
+            if ($existsNext) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Lo sentimos, los feriados del próximo año ya fueron creados.'
+                ], 422);
             }
 
-            $holidays = Holiday::select('id', 'description', 'year', 'date_complete')
-                ->where('year', $yearMax)
-                ->orderBy('year', 'DESC')
+            // Caso 1: BD vacía => crear año actual
+            $yearMax = Holiday::max('year'); // puede ser null
+
+            if ($yearMax === null) {
+                $this->seedFixedHolidaysForYear($yearCurrent, $tz);
+                DB::commit();
+                return response()->json(['message' => 'Feriados del año actual creados con éxito.'], 200);
+            }
+
+            // Caso 2: Existe data pero no existe año actual (ej. base vieja) => crear año actual
+            if (!$existsCurrent) {
+                $this->seedFixedHolidaysForYear($yearCurrent, $tz);
+                DB::commit();
+                return response()->json(['message' => 'Feriados del año actual creados con éxito.'], 200);
+            }
+
+            // Caso 3: Ya existe año actual y NO existe año siguiente => crear año siguiente copiando del actual
+            // (así respetas cambios manuales hechos este año)
+            $holidaysCurrent = Holiday::select('description', 'date_complete')
+                ->where('year', $yearCurrent)
                 ->orderBy('date_complete', 'ASC')
                 ->get();
 
-            foreach ( $holidays as $holiday )
-            {
-                $tz = 'America/Lima';
+            foreach ($holidaysCurrent as $holiday) {
                 $day = $holiday->date_complete->day;
                 $month = $holiday->date_complete->month;
-                $date = Carbon::createFromDate($yearMax+1, $month, $day, $tz);
+
+                $date = Carbon::createFromDate($yearNext, $month, $day, $tz);
+
                 Holiday::create([
-                    'description' => $holiday->description,
-                    'year' => $yearMax+1,
+                    'description'   => $holiday->description,
+                    'year'          => $yearNext,
                     'date_complete' => $date,
                 ]);
             }
 
             DB::commit();
+            return response()->json(['message' => 'Feriados del próximo año creados con éxito.'], 200);
 
-        } catch ( \Throwable $e ) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json(['message' => $e->getMessage()], 422);
         }
-        return response()->json(['message' => 'Feriados generados con éxito.'], 200);
+    }
 
+    /**
+     * Crea feriados fijos para el año indicado (desde config).
+     */
+    private function seedFixedHolidaysForYear($year, $tz)
+    {
+        $fixed = config('holidays.fixed', array());
+
+        foreach ($fixed as $h) {
+            $date = Carbon::createFromDate($year, (int)$h['month'], (int)$h['day'], $tz);
+
+            Holiday::create([
+                'description'   => $h['description'],
+                'year'          => $year,
+                'date_complete' => $date,
+            ]);
+        }
     }
 }
