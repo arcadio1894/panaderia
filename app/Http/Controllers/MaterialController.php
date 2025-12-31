@@ -153,7 +153,7 @@ class MaterialController extends Controller
                 'tipo_venta_id' => $request->get('tipo_venta'),
                 'perecible' => $request->get('perecible'),
                 'full_name' => $request->get('name'),
-                'list_price' => (float)($request->get('unit_price')+2),
+                'list_price' => (float)($request->get('unit_price')),
                 'isPack' => $request->has('pack') ? 1 : 0,
                 'quantityPack' => $request->has('pack') ? $request->get('inputPack') : 0,
             ]);
