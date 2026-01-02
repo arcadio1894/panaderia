@@ -66,5 +66,9 @@ class DatabaseSeeder extends Seeder
         $this->call(PorcentagesQoteSeeder::class);
         $this->call(PercentageWorkerSeeder::class);
         $this->call(TipoVentasSeeder::class);
+        $this->call(DataFirstPositionAlmacenSeeder::class);
+
+        // 👇 DIMENSIÓN TIEMPO
+        Artisan::call('dimension:populate-date');
     }
 }

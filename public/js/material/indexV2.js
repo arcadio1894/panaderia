@@ -214,6 +214,93 @@ $(document).ready(function () {
             }
         });
     });
+
+    $(document).on('click', '[data-show_vencimiento]', function() {
+        var materialId = $(this).data('material');
+        var description = $(this).data('description');
+
+        $('#modalVencimientosLabel').text('Fechas de vencimiento - ' + description);
+
+        $.ajax({
+            url: '/dashboard/fechas/vencimientos/material/' + materialId,
+            method: 'GET',
+            success: function(response) {
+                var vencimientosHtml = '';
+
+                if(response.length > 0) {
+                    $.each(response, function(index, vencimiento) {
+                        var color = calcularColor(vencimiento.fecha_vencimiento);
+
+                        vencimientosHtml += `
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge badge-${color} p-2 mr-2">&nbsp;</span> 
+                                    ${vencimiento.fecha_vencimiento}
+                                </div>
+                                <button class="btn btn-danger btn-sm eliminar-vencimiento" data-store_material_vencimiento="${vencimiento.id}">
+                                    Eliminar
+                                </button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    vencimientosHtml = '<p class="text-center text-muted">No hay fechas de vencimiento registradas.</p>';
+                }
+
+                $('#vencimientos-content').html(vencimientosHtml);
+                $('#modalVencimientos').modal('show');
+            },
+            error: function() {
+                alert('Error al cargar las fechas de vencimiento.');
+            }
+        });
+    });
+
+    // Eliminar vencimiento
+    $(document).on('click', '.eliminar-vencimiento', function() {
+        var vencimientoId = $(this).data('store_material_vencimiento');
+
+        $.confirm({
+            title: '¿Eliminar fecha?',
+            content: '¿Estás seguro de que deseas eliminar esta fecha de vencimiento?',
+            buttons: {
+                confirmar: {
+                    text: 'Sí, eliminar',
+                    btnClass: 'btn-red',
+                    action: function() {
+                        $.ajax({
+                            url: '/dashboard/eliminar/fechas/vencimientos/material/' + vencimientoId,
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function() {
+                                $.alert({
+                                    title: 'Eliminado',
+                                    content: 'La fecha fue eliminada exitosamente.',
+                                    buttons: {
+                                        ok: {
+                                            action: function() {
+                                                // Refrescamos el modal
+                                                $('[data-show_vencimiento][data-material]').trigger('click');
+                                            }
+                                        }
+                                    }
+                                });
+                            },
+                            error: function() {
+                                $.alert('Error al eliminar la fecha de vencimiento.');
+                            }
+                        });
+                    }
+                },
+                cancelar: {
+                    text: 'Cancelar',
+                    btnClass: 'btn-default'
+                }
+            }
+        });
+    });
 });
 
 var $formAssignChild;
@@ -1135,6 +1222,7 @@ function renderDataTableHeader(activeColumns) {
 }
 
 function renderDataTable(data, activeColumns) {
+    console.log(data);
     var clone = document.querySelector('#item-table').content.cloneNode(true);
 
     // Iterar sobre cada columna en el cuerpo de la tabla y mostrar u ocultar según los checkboxes activos
@@ -1163,6 +1251,7 @@ function renderDataTable(data, activeColumns) {
     clone.querySelector("[data-stock_actual]").innerHTML = data.stock_actual;
     clone.querySelector("[data-prioridad]").innerHTML = data.prioridad;
     clone.querySelector("[data-precio_unitario]").innerHTML = data.precio_unitario;
+    clone.querySelector("[data-precio_lista]").innerHTML = data.precio_lista;
     clone.querySelector("[data-categoria]").innerHTML = data.categoria;
     clone.querySelector("[data-sub_categoria]").innerHTML = data.sub_categoria;
     clone.querySelector("[data-tipo]").innerHTML = data.tipo;
@@ -1211,8 +1300,11 @@ function renderDataTable(data, activeColumns) {
     let url2 = document.location.origin + '/dashboard/view/material/items/' + data.id;
     clone.querySelector("[data-ver_items]").setAttribute("href", url2);
 
-    let url3 = document.location.origin + '/dashboard/enviar/material/a/tienda/' + data.id;
-    clone.querySelector("[data-send_store]").setAttribute("href", url3);
+    clone.querySelector("[data-show_vencimiento]").setAttribute("data-material", data.id);
+    clone.querySelector("[data-show_vencimiento]").setAttribute("data-description", data.descripcion);
+
+    /*let url3 = document.location.origin + '/dashboard/enviar/material/a/tienda/' + data.id;
+    clone.querySelector("[data-send_store]").setAttribute("href", url3);*/
 
     if (data.isPack == 1) {
         clone.querySelector("[data-assign_child]").setAttribute("data-material", data.id);

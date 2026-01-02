@@ -846,7 +846,7 @@
                                 </li>
                             @endcan
 
-                            @can('list_warrant')
+                            {{--@can('list_warrant')
                                 <li class="nav-item has-treeview @yield('openWarrant')">
                                     <a href="#" class="nav-link @yield('activeWarrant')">
                                         <i class="far fa-circle nav-icon text-success"></i>
@@ -874,9 +874,9 @@
                                         @endcan
                                     </ul>
                                 </li>
-                            @endcan
+                            @endcan--}}
 
-                            @can('list_quality')
+                            {{--@can('list_quality')
                                 <li class="nav-item has-treeview @yield('openQuality')">
                                     <a href="#" class="nav-link @yield('activeQuality')">
                                         <i class="far fa-circle nav-icon text-success"></i>
@@ -904,9 +904,9 @@
                                         @endcan
                                     </ul>
                                 </li>
-                            @endcan
+                            @endcan--}}
 
-                            @can('list_brand')
+                            {{--@can('list_brand')
                             <li class="nav-item has-treeview @yield('openBrand')">
                                 <a href="#" class="nav-link">
                                     <i class="far fa-circle nav-icon text-success"></i>
@@ -934,9 +934,9 @@
                                     @endcan
                                 </ul>
                             </li>
-                            @endcan
+                            @endcan--}}
 
-                            @can('list_exampler')
+                            {{--@can('list_exampler')
                             <li class="nav-item has-treeview @yield('openExampler')">
                                 <a href="#" class="nav-link">
                                     <i class="far fa-circle nav-icon text-success"></i>
@@ -964,7 +964,7 @@
                                     @endcan
                                 </ul>
                             </li>
-                            @endcan
+                            @endcan--}}
 
                             @can('enable_files')
                                 <li class="nav-item has-treeview @yield('openListFiles')">
@@ -1025,12 +1025,12 @@
                             </a>
                             <ul class="nav nav-treeview">
                                 @can('list_material')
-                                <li class="nav-item">
+                                {{--<li class="nav-item">
                                     <a href="{{route('material.index.store')}}" class="nav-link @yield('activeListMaterialStore')">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Listar materiales Tienda</p>
                                     </a>
-                                </li>
+                                </li>--}}
                                 <li class="nav-item">
                                     <a href="{{route('material.indexV2')}}" class="nav-link @yield('activeListMaterial')">
                                         <i class="far fa-circle nav-icon"></i>
@@ -1427,7 +1427,7 @@
                     </li>
                     @endcan
 
-                    @can('showMaterials_orderExecutionAlmacen')
+                    {{--@can('showMaterials_orderExecutionAlmacen')
                     <li class="nav-header">MATERIAL EN ORD. EJEC.</li>
                     <li class="nav-item has-treeview @yield('openExecutionsAlmacen')">
                         <a href="#" class="nav-link @yield('activeExecutionsAlmacen')">
@@ -1448,8 +1448,8 @@
                             @endcan
                         </ul>
                     </li>
-                    @endcan
-                    @can('list_orderExecution')
+                    @endcan--}}
+                    {{--@can('list_orderExecution')
                         <li class="nav-header">ORDENES EJECUCIÓN</li>
                         <li class="nav-item has-treeview @yield('openOrderExecutions')">
                             <a href="#" class="nav-link @yield('activeOrderExecutions')">
@@ -1466,15 +1466,9 @@
                                         <p>Listar Ordenes</p>
                                     </a>
                                 </li>
-                                {{--<li class="nav-item">
-                                    <a href="{{ route('order.execution.finish') }}" class="nav-link @yield('activeListOrderExecutionsFinish')">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Ordenes Finalizadas</p>
-                                    </a>
-                                </li>--}}
                             </ul>
                         </li>
-                    @endcan
+                    @endcan--}}
 
                     @can('enable_requestSimple')
                         <li class="nav-header">SOLICITUD DE ÁREA</li>
@@ -1686,14 +1680,14 @@
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
-                                @canany('list_orderPurchaseNormal','list_orderPurchaseNormal')
+                                {{--@canany('list_orderPurchaseNormal','list_orderPurchaseNormal')
                                     <li class="nav-item">
                                         <a href="{{route('order.purchase.general.indexV2')}}" class="nav-link @yield('activeListOrderPurchaseGeneral')">
                                             <i class="far fa-circle nav-icon"></i>
                                             <p>Listar ordenes general</p>
                                         </a>
                                     </li>
-                                @endcanany
+                                @endcanany--}}
                                 @can('list_orderPurchaseExpress')
                                     {{--<li class="nav-item">
                                         <a href="{{route('order.purchase.express.index')}}" class="nav-link @yield('activeListOrderPurchaseExpress')">
@@ -1754,7 +1748,7 @@
                                         </a>
                                     </li>
                                 @endcan
-                                @canany('list_orderPurchaseNormal','list_orderPurchaseNormal')
+                                {{--@canany('list_orderPurchaseNormal','list_orderPurchaseNormal')
                                     <li class="nav-item">
                                         <a href="{{ route('order.purchase.list.regularize') }}" class="nav-link @yield('activeListOrderPurchaseRegularize')">
                                             <i class="far fa-circle nav-icon"></i>
@@ -1769,15 +1763,15 @@
                                             <p>Listar eliminadas</p>
                                         </a>
                                     </li>
-                                @endcanany
-                                @canany('list_orderPurchaseNormal','list_orderPurchaseNormal')
+                                @endcanany--}}
+                                {{--@canany('list_orderPurchaseNormal','list_orderPurchaseNormal')
                                     <li class="nav-item">
                                         <a href="{{route('order.purchase.list.lost')}}" class="nav-link @yield('activeListOrderPurchaseLost')">
                                             <i class="far fa-circle nav-icon"></i>
                                             <p>Ordenes perdidas</p>
                                         </a>
                                     </li>
-                                @endcanany
+                                @endcanany--}}
 
                                 @canany('list_orderPurchaseFinance')
                                     <li class="nav-item">
@@ -1857,11 +1851,11 @@
                             </ul>
                         </li>
                     @endcan--}}
-                    @can('enable_timeline')
+                    {{--@can('enable_timeline')
                     <li class="nav-header">CONTROL DE HORAS</li>
-                    @endcan
+                    @endcan--}}
 
-                    <li class="nav-item has-treeview @yield('openTimelines')">
+                    {{--<li class="nav-item has-treeview @yield('openTimelines')">
                         @can('enable_timeline')
                         <a href="#" class="nav-link @yield('activeTimelines')">
                             <i class="nav-icon far fa-calendar-alt"></i>
@@ -1881,7 +1875,7 @@
                             </li>
                             @endcan
                         </ul>
-                    </li>
+                    </li>--}}
                     @can('enable_worker')
                     <li class="nav-header">RECURSOS HUMANOS</li>
                     @endcan
@@ -3032,24 +3026,24 @@
                             </a>
                             <ul class="nav nav-treeview">
                                 @can('list_invoice')
-                                    <li class="nav-item">
+                                    {{--<li class="nav-item">
                                         <a href="{{route('invoice.index')}}" class="nav-link @yield('activeListInvoice')">
                                             <i class="far fa-circle nav-icon"></i>
                                             <p>Listar compras/Servicios</p>
                                         </a>
-                                    </li>
+                                    </li>--}}
                                     <li class="nav-item">
                                         <a href="{{route('report.invoice.finance')}}" class="nav-link @yield('activeReportInvoice')">
                                             <i class="far fa-circle nav-icon"></i>
                                             <p>Facturas finanzas</p>
                                         </a>
                                     </li>
-                                    <li class="nav-item">
+                                    {{--<li class="nav-item">
                                         <a href="{{route('report.invoice.finance.sin.orden')}}" class="nav-link @yield('activeReportInvoiceSinOrden')">
                                             <i class="far fa-circle nav-icon"></i>
                                             <p>Facturas finanzas Sin Orden</p>
                                         </a>
-                                    </li>
+                                    </li>--}}
                                 @endcan
                                 @can('create_invoice')
                                     <li class="nav-item">

@@ -288,7 +288,11 @@
         </div>
         <div class="col-md-2 custom-control custom-switch custom-switch-off-danger custom-switch-on-success">
             <input type="checkbox" checked data-column="precio_unitario" class="custom-control-input" id="customSwitch9">
-            <label class="custom-control-label" for="customSwitch9">Precio</label>
+            <label class="custom-control-label" for="customSwitch9">Precio Costo</label>
+        </div>
+        <div class="col-md-2 custom-control custom-switch custom-switch-off-danger custom-switch-on-success">
+            <input type="checkbox" checked data-column="precio_lista" class="custom-control-input" id="customSwitch10">
+            <label class="custom-control-label" for="customSwitch10">Precio Venta</label>
         </div>
         <div class="col-md-2 custom-control custom-switch custom-switch-off-danger custom-switch-on-success">
             <input type="checkbox" checked data-column="categoria" class="custom-control-input" id="customSwitch11">
@@ -406,7 +410,8 @@
             <th data-column="stock_min" data-stock_min>Stock Min</th>
             <th data-column="stock_actual" data-stock_actual>Stock Actual</th>
             <th data-column="prioridad" data-prioridad>Prioridad</th>
-            <th data-column="precio_unitario" data-precio_unitario>Precio TIenda</th>
+            <th data-column="precio_unitario" data-precio_unitario>Precio Costo</th>
+            <th data-column="precio_lista" data-precio_lista>Precio Venta</th>
             <th data-column="categoria" data-categoria>Categoría</th>
             <th data-column="sub_categoria" data-sub_categoria>SubCategoría</th>
             <th data-column="tipo" data-tipo>Tipo</th>
@@ -463,6 +468,7 @@
             <td data-column="stock_actual" data-stock_actual></td>
             <td data-column="prioridad" data-prioridad></td>
             <td data-column="precio_unitario" data-precio_unitario></td>
+            <td data-column="precio_lista" data-precio_lista></td>
             <td data-column="categoria" data-categoria></td>
             <td data-column="sub_categoria" data-sub_categoria></td>
             <td data-column="tipo" data-tipo></td>
@@ -485,16 +491,17 @@
                 <button data-precioDirecto data-material="{{--'+item.id+'--}}" data-description="{{--'+item.full_description+'--}}" class="btn btn-outline-success btn-sm" data-toggle="tooltip" data-placement="top" title="Gestionar precios"><i class="fas fa-tag"></i> </button>
                 <button data-separate data-material="" data-quantity data-description="" data-measure="" class="btn btn-outline-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Separar Paquete"><i class="far fa-object-ungroup"></i></button>
                 <button data-assign_child data-material="" data-description="" class="btn btn-outline-success btn-sm" data-toggle="tooltip" data-placement="top" title="Asignar Hijos"><i class="fas fa-boxes"></i></button>
+                <button data-show_vencimiento data-material="" data-description="" class="btn btn-outline-success btn-sm" data-toggle="tooltip" data-placement="top" title="Ver fechas"><i class="fas fa-boxes"></i></button>
 
-                <a data-send_store href="" class="btn btn-outline-info btn-sm" data-toggle="tooltip" data-placement="top" title="Enviar a tienda"><i class="fas fa-share"></i> </a>
-
+                {{--<a data-send_store href="" class="btn btn-outline-info btn-sm" data-toggle="tooltip" data-placement="top" title="Enviar a tienda"><i class="fas fa-share"></i> </a>
+--}}
             </td>
         </tr>
     </template>
 
     <template id="item-table-empty">
         <tr>
-            <td colspan="20" align="center">No se ha encontrado ningún dato</td>
+            <td colspan="22" align="center">No se ha encontrado ningún dato</td>
         </tr>
     </template>
 
@@ -695,6 +702,25 @@
                         <button type="button" id="btn-submitSeparate" class="btn btn-success">Separar</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ver vencimientos -->
+    <div class="modal fade" id="modalVencimientos" tabindex="-1" role="dialog" aria-labelledby="modalVencimientosLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalVencimientosLabel">Fechas de Vencimiento</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="vencimientos-content" class="list-group">
+                        <!-- Aquí se llenarán las fechas -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>

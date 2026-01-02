@@ -18,6 +18,7 @@ use App\MaterialDetailSetting;
 use App\MaterialDiscountQuantity;
 use App\MaterialType;
 use App\MaterialUnpack;
+use App\MaterialVencimiento;
 use App\Quality;
 use App\Shelf;
 use App\Specification;
@@ -583,7 +584,8 @@ class MaterialController extends Controller
                 "stock_min" => $material->stock_min,
                 "stock_actual" => $material->stock_current,
                 "prioridad" => $priority,
-                "precio_unitario" => $material->price_final,
+                "precio_unitario" => $material->unit_price,
+                "precio_lista" => $material->list_price,
                 "categoria" => ($material->category == null) ? '': $material->category->name,
                 "sub_categoria" => ($material->subcategory == null) ? '': $material->subcategory->name,
                 "tipo" => ($material->materialType == null) ? '': $material->materialType->name,
@@ -1749,7 +1751,8 @@ class MaterialController extends Controller
                 "stock_min" => $material->stock_min,
                 "stock_actual" => $material->stock_store,
                 "prioridad" => $priority,
-                "precio_unitario" => $material->price_final,
+                "precio_unitario" => $material->unit_price,
+                "precio_lista" => $material->list_price,
                 "categoria" => ($material->category == null) ? '': $material->category->name,
                 "sub_categoria" => ($material->subcategory == null) ? '': $material->subcategory->name,
                 "tipo" => ($material->materialType == null) ? '': $material->materialType->name,
@@ -1780,11 +1783,7 @@ class MaterialController extends Controller
 
     public function getFechasVencimiento($material_id)
     {
-        $storeMaterials = StoreMaterial::where('material_id', $material_id)
-            ->where('enable_status', 1)
-            ->pluck('id'); // IDs de store_materials activos
-
-        $vencimientos = StoreMaterialVencimiento::whereIn('store_material_id', $storeMaterials)
+        $vencimientos = MaterialVencimiento::where('material_id', $material_id)
             ->orderBy('fecha_vencimiento', 'asc')
             ->get(['id', 'fecha_vencimiento']);
 
@@ -1793,7 +1792,7 @@ class MaterialController extends Controller
 
     public function deleteFechasVencimiento($id)
     {
-        $vencimiento = StoreMaterialVencimiento::findOrFail($id);
+        $vencimiento = MaterialVencimiento::findOrFail($id);
         $vencimiento->delete();
 
         return response()->json(['message' => 'Fecha eliminada exitosamente']);

@@ -9,7 +9,8 @@ class Position extends Model
     protected $fillable = [
         'name',
         'comment',
-        'container_id'
+        'container_id',
+        'status'
     ];
 
     public function container()

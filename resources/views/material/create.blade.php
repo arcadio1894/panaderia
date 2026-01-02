@@ -280,7 +280,7 @@
             <div class="col-md-4">
                 <div class="card card-warning">
                     <div class="card-header">
-                        <h3 class="card-title">Categoría y Stock</h3>
+                        <h3 class="card-title">Stocks</h3>
 
                         <div class="card-tools">
                             <button type="button" class="btn btn-tool" data-card-widget="collapse" data-toggle="tooltip" title="Collapse">
@@ -306,7 +306,7 @@
                     <!-- /.card-body -->
                 </div>
                 <!-- /.card -->
-                <div class="card card-primary">
+                {{--<div class="card card-primary">
                     <div class="card-header">
                         <h3 class="card-title">Promociones</h3>
 
@@ -329,8 +329,8 @@
                         @endforeach
 
                     </div>
-                    <!-- /.card-body -->
-                </div>
+
+                </div>--}}
             </div>
 
         </div>

@@ -1,6 +1,17 @@
 $(document).ready(function () {
     //$permissions = JSON.parse($('#permissions').val());
 
+    setTimeout(function () {
+        $('#product_search').focus();
+    }, 300);
+
+    $('#product_search').on('keypress', function (e) {
+        if (e.which === 13) { // Enter
+            e.preventDefault();
+            $('#btn_search').click();
+        }
+    });
+
     $('#modalVuelto').on('hidden.bs.modal', function () {
         $('#btn-pay').prop('disabled', false);
     });

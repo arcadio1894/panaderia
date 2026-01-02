@@ -1,34 +1,29 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Services;
 
-use App\DateDimension;
 use Carbon\Carbon;
+use App\DateDimension;
 use Carbon\CarbonPeriod;
-use Illuminate\Http\Request;
 
-class DateDimensionController extends Controller
+class DateDimensionService
 {
-    public function populateDateDimension()
+    public function populate($force = false)
     {
-        // Truncate all records
-        DateDimension::truncate();
+        if (!$force && DateDimension::exists()) {
+            return; // ya existe data, no rehacer
+        }
 
-        // Create an empty array and save the transformed input to array
+        if ($force) {
+            DateDimension::truncate(); // MySQL OK y sin FK
+        }
+
         $dataToInsert = [];
-
-        // Get the date range
-        // @NOTE - update the start and end date as per your choice
         $dates = CarbonPeriod::create('2024-01-01', '2040-12-31');
 
-        // For each dates create a transformed data
         foreach ($dates as $date) {
-
-            // Get the quarter details, as ABC has a different quarter system
-            // @note - Carbon does not allow to override the quarters
             $quarterDetails = $this->getQuarterDetails($date);
 
-            // Main transformer
             $dataToInsert[] = [
                 'date' => $date->format('Y-m-d'),
                 'day' => $date->day,
@@ -42,9 +37,9 @@ class DateDimensionController extends Controller
                 'week' => $date->week,
                 'week_of_month' => $date->weekOfMonth,
                 'week_of_year' => $date->weekOfYear,
-                'month_name' => strtoupper(substr($date->monthName, 0,1)).substr($date->monthName, 1),
+                'month_name' => ucfirst($date->monthName),
                 'month_year' => $date->format('mY'),
-                'month_name_year' => strtoupper(substr($date->monthName, 0,1)).substr($date->monthName, 1,2).'-'.$date->year,
+                'month_name_year' => ucfirst(substr($date->monthName, 0, 3)).'-'.$date->year,
                 'quarter' => $quarterDetails['value'],
                 'quarter_name' => $quarterDetails['name'],
                 'created_at' => now(),
@@ -52,12 +47,7 @@ class DateDimensionController extends Controller
             ];
         }
 
-        // Create chunks for faster insertion
-        // @note - SQL Server supports a maximum of 2100 parameters.
-        $chunks = collect($dataToInsert)->chunk(50);
-
-        // Using chunks insert the data
-        foreach ($chunks as $chunk) {
+        foreach (collect($dataToInsert)->chunk(500) as $chunk) { // MySQL puede ser 500 o 1000
             DateDimension::insert($chunk->toArray());
         }
     }

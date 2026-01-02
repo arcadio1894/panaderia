@@ -72,7 +72,7 @@ class PuntoVentaController extends Controller
             ->toArray();
 
         $query = Material::where('enable_status', 1)
-            ->whereIn('id', $materialIds)
+            /*->whereIn('id', $materialIds)*/
             ->where('stock_current', '>', 0)
             ->orderBy('id');
 
@@ -84,8 +84,15 @@ class PuntoVentaController extends Controller
         }
 
         if ($product_search != "") {
-            $query->where('full_name', 'like','%'.$product_search.'%');
+            $search = trim($product_search);
 
+            $query->where(function ($q) use ($search) {
+                $q->where('codigo', $search) // <-- código/barcode exacto
+                ->orWhere('full_name', 'like', '%'.$search.'%');
+            });
+
+            // Opcional: PRIORIDAD a los que matchean por código exacto (sale primero)
+            $query->orderByRaw("CASE WHEN codigo = ? THEN 0 ELSE 1 END", [$search]);
         }
 
         $totalFilteredRecords = $query->count();
@@ -205,8 +212,9 @@ class PuntoVentaController extends Controller
                     throw new \Exception("Material con ID {$item->productId} no encontrado.");
                 }
 
-                $currentQuantityStore = StoreMaterial::where('material_id', $material->id)
-                    ->sum('stock_current');
+                /*$currentQuantityStore = StoreMaterial::where('material_id', $material->id)
+                    ->sum('stock_current');*/
+                $currentQuantityStore = $material->stock_current;
 
                 if ($currentQuantityStore < $item->productQuantity) {
                     throw new \Exception("Stock insuficiente para el producto '{$material->description}'. Disponible: {$material->stock_current}, requerido: {$item->productQuantity}");
@@ -421,6 +429,13 @@ class PuntoVentaController extends Controller
                         $item->save();
                     }
 
+                    // Descontar stock directo del material
+                    $material->stock_current = max(
+                        0,
+                        (float) $material->stock_current - $cantidadVendidaInt
+                    );
+                    $material->save();
+
                     $cantidadParaStore = $cantidadVendidaInt;
 
                 }
@@ -455,7 +470,7 @@ class PuntoVentaController extends Controller
                 // ==========================================
                 // 4. DESCONTAR StoreMaterial (AMBOS CASOS)
                 // ==========================================
-                if ($cantidadParaStore > 0) {
+                /*if ($cantidadParaStore > 0) {
 
                     $restante = $cantidadParaStore;
 
@@ -484,7 +499,7 @@ class PuntoVentaController extends Controller
 
                     // Notificación de stock bajo
                     $this->manageNotifications($material);
-                }
+                }*/
             }
 
             // Agregar movimientos a la caja

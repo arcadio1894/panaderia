@@ -16,6 +16,7 @@ use App\Http\Requests\UpdateEntryPurchaseRequest;
 use App\Item;
 use App\Material;
 use App\MaterialOrder;
+use App\MaterialVencimiento;
 use App\Notification;
 use App\NotificationUser;
 use App\OrderPurchase;
@@ -211,7 +212,7 @@ class EntryController extends Controller
     public function storeEntryPurchase(StoreEntryPurchaseRequest $request)
     {
         $begin = microtime(true);
-        //dd($request->get('deferred_invoice'));
+        //dd($request);
         $validated = $request->validated();
 
         $fecha = Carbon::createFromFormat('d/m/Y', $request->get('date_invoice'));
@@ -343,6 +344,12 @@ class EntryController extends Controller
                     'ordered_quantity' => $count,
                     'entered_quantity' => $count,
                     'date_vence' => ($request->get('date_vence') == "" || $request->get('date_vence') == null) ? null: Carbon::createFromFormat('d/m/Y', $request->get('date_vence'))
+                ]);
+
+                // TODO: Crear los MaterialVencimientos
+                MaterialVencimiento::create([
+                    'material_id' => $id_material,
+                    'fecha_vencimiento' => ($request->get('date_vence') == "" || $request->get('date_vence') == null) ? null: Carbon::createFromFormat('d/m/Y', $request->get('date_vence'))
                 ]);
 
                 // TODO: Revisamos si hay un material en seguimiento y creamos

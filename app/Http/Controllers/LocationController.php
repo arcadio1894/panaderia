@@ -69,7 +69,8 @@ class LocationController extends Controller
             ->get();
 
         foreach ($locations as $location) {
-            $l = 'AR:' . $location->area->name . '|AL:' . $location->warehouse->name . '|AN:' . $location->shelf->name . '|NIV:' . $location->level->name . '|CON:' . $location->container->name . '|POS:' . $location->position->name;
+            //$l = 'AR:' . $location->area->name . '|AL:' . $location->warehouse->name . '|AN:' . $location->shelf->name . '|NIV:' . $location->level->name . '|CON:' . $location->container->name . '|POS:' . $location->position->name;
+            $l = $location->description;
             $array[] = [
                 'id' => $location->id,
                 'location' => $l

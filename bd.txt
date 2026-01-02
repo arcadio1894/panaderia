@@ -3,3 +3,5 @@ php artisan migrate:refresh --path=database/migrations/2025_12_11_175656_create_
 php artisan db:seed --class=PermissionSettingsMaterialSeeder
 
 php artisan db:seed --class=PermissionAdminAppSeeder
+
+php artisan db:seed --class=DataFirstPositionAlmacenSeeder

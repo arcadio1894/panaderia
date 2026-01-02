@@ -2303,8 +2303,12 @@ Route::middleware('auth')->group(function (){
         Route::get('/get/workers/boletas/', 'WorkerController@getWorkersBoleta');
 
         // TODO: Ruta para poblar la dimension tiempo, solo usarse una vez
-        Route::get('/populate/date/dimension', 'DateDimensionController@populateDateDimension');
-
+        //Route::get('/populate/date/dimension', 'DateDimensionController@populateDateDimension');
+        Route::get('/populate/date/dimension', function () {
+            abort_unless(app()->environment('local'), 403);
+            app(\App\Services\DateDimensionService::class)->populate(true); // force
+            return 'OK';
+        });
 
         // TODO: Ruta para hacer pruebas en produccion para resolver las cantidades
         Route::get('/prueba/cantidades/', 'OrderPurchaseController@pruebaCantidades');
