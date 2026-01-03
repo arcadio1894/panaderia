@@ -335,7 +335,7 @@
                     <!-- /.card-body -->
                 </div>
                 <!-- /.card -->
-                <div class="card card-primary">
+                {{--<div class="card card-primary">
                     <div class="card-header">
                         <h3 class="card-title">Promociones</h3>
 
@@ -363,7 +363,7 @@
 
                     </div>
                     <!-- /.card-body -->
-                </div>
+                </div>--}}
             </div>
 
         </div>
