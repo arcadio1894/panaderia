@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <style>
+        @page { margin: 8pt; }
         body {
             font-family: Arial, sans-serif;
             font-size: 12px;
