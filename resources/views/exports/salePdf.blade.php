@@ -8,7 +8,7 @@
             font-size: 12px;
             margin: 0;
             padding: 0;
-            width: 100%;
+            /*width: 100%;*/
             text-align: center;
             box-sizing: border-box;
         }
