@@ -597,7 +597,7 @@ class PuntoVentaController extends Controller
             ]);
 
             // Roles adecuados para recibir esta notificación admin, logistica
-            $users = User::role(['admin', 'principal' , 'logistic'])->get();
+            $users = User::role(['admin', 'owner' , 'principal'])->get();
             foreach ( $users as $user )
             {
                 if ( $user->id != Auth::user()->id )
@@ -648,7 +648,7 @@ class PuntoVentaController extends Controller
         $nameMaterial = $material->full_name;
 
         // Obtener usuarios con roles específicos (excepto el actual)
-        $users = User::role(['admin', 'principal', 'logistic'])->where('id', '!=', Auth::id())->get();
+        $users = User::role(['admin', 'principal', 'owner'])->where('id', '!=', Auth::id())->get();
 
         if ($dataGeneralTypeNotificationCampana && $dataGeneralTypeNotificationCampana->valueText === 's')
         {
