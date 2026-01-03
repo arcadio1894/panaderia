@@ -5,3 +5,5 @@ php artisan db:seed --class=PermissionSettingsMaterialSeeder
 php artisan db:seed --class=PermissionAdminAppSeeder
 
 php artisan db:seed --class=DataFirstPositionAlmacenSeeder
+
+php artisan db:seed --class=TipoPagoSeeder
