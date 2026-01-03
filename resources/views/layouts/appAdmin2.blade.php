@@ -906,7 +906,7 @@
                                 </li>
                             @endcan--}}
 
-                            {{--@can('list_brand')
+                            @can('list_brand')
                             <li class="nav-item has-treeview @yield('openBrand')">
                                 <a href="#" class="nav-link">
                                     <i class="far fa-circle nav-icon text-success"></i>
@@ -934,9 +934,9 @@
                                     @endcan
                                 </ul>
                             </li>
-                            @endcan--}}
+                            @endcan
 
-                            {{--@can('list_exampler')
+                            @can('list_exampler')
                             <li class="nav-item has-treeview @yield('openExampler')">
                                 <a href="#" class="nav-link">
                                     <i class="far fa-circle nav-icon text-success"></i>
@@ -964,7 +964,7 @@
                                     @endcan
                                 </ul>
                             </li>
-                            @endcan--}}
+                            @endcan
 
                             @can('enable_files')
                                 <li class="nav-item has-treeview @yield('openListFiles')">
