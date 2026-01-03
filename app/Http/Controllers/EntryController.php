@@ -346,11 +346,14 @@ class EntryController extends Controller
                     'date_vence' => ($request->get('date_vence') == "" || $request->get('date_vence') == null) ? null: Carbon::createFromFormat('d/m/Y', $request->get('date_vence'))
                 ]);
 
-                // TODO: Crear los MaterialVencimientos
-                MaterialVencimiento::create([
-                    'material_id' => $id_material,
-                    'fecha_vencimiento' => ($request->get('date_vence') == "" || $request->get('date_vence') == null) ? null: Carbon::createFromFormat('d/m/Y', $request->get('date_vence'))
-                ]);
+                if ( $material->perecible == 1 )
+                {
+                    // TODO: Crear los MaterialVencimientos
+                    MaterialVencimiento::create([
+                        'material_id' => $id_material,
+                        'fecha_vencimiento' => ($request->get('date_vence') == "" || $request->get('date_vence') == null) ? null: Carbon::createFromFormat('d/m/Y', $request->get('date_vence'))
+                    ]);
+                }
 
                 // TODO: Revisamos si hay un material en seguimiento y creamos
                 // TODO: la notificacion y cambiamos el estado
