@@ -7,3 +7,5 @@ php artisan db:seed --class=PermissionAdminAppSeeder
 php artisan db:seed --class=DataFirstPositionAlmacenSeeder
 
 php artisan db:seed --class=TipoPagoSeeder
+
+php artisan db:seed --class=MaterialsFromExcelSeeder
