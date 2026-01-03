@@ -118,20 +118,20 @@
 </head>
 <body>
 <div class="ticket">
-    <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/logo/logoPequeno.png'))) }}" alt="Logo de Tienda">
+    {{--<img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/logo/logoPequeno.png'))) }}" alt="Logo de Tienda">--}}
 
-    <p class="centered header" style="text-align: center">{{ $nameEmpresa }}<br>
+    {{--<p class="centered header" style="text-align: center">{{ $nameEmpresa }}<br>
         R.U.C.: {{ $ruc }}<br>
         BOLETA DE VENTA ELECTRÓNICA</p>
     <p class="centered address bold text-sm" style="text-align: center">{{ $address }}</p>
-    <div class="line"></div>
+    <div class="line"></div>--}}
     <p><b>Fecha Emisión: </b>{{ \Carbon\Carbon::parse($sale->date_sale)->format('d/m/y') }}</p>
     <p><b>Hora: </b> {{ \Carbon\Carbon::parse($sale->date_sale)->format('H:i') }}</p>
     <div class="line"></div>
-    <p style="font-size: 10px; margin: 0; text-align: center">
+    {{--<p style="font-size: 10px; margin: 0; text-align: center">
         {{ $sale->serie }} - {{ $sale->worker->first_name." ".$sale->worker->last_name }} - 4 - 1 - transacción-{{ $sale->serie }}
-    </p>
-    <div class="line"></div>
+    </p>--}}
+    {{--<div class="line"></div>--}}
     <table class="details-table">
         <thead>
         <tr>
@@ -198,20 +198,20 @@
     <p class="bold right">Pago con: S/. {{ number_format($sale->importe_total+$sale->vuelto, 2) }}</p>
     <p class="bold right">Vuelto: S/. {{ number_format($sale->vuelto, 2) }}</p>
 
-    <div class="separator"></div>
+    {{--<div class="separator"></div>
 
-    <p style="text-align: center">Atendido por: {{ $sale->worker->first_name." ".$sale->worker->last_name }}</p>
+    <p style="text-align: center">Atendido por: {{ $sale->worker->first_name." ".$sale->worker->last_name }}</p>--}}
     <div class="line"></div>
     <div class="text-center" >
         <p style="text-align: center">¡Gracias por su compra!</p>
         <p style="text-align: center">www.edesce.com</p>
     </div>
-    <div class="line2"></div>
+   {{-- <div class="line2"></div>
     <div class="text-center" >
         <p style="text-align: center">¿Ya conoces nuestra web?</p>
         <p style="text-align: center">En <strong>www.edesce.com</strong> puedes explorar nuestro menú, descubrir <strong>promociones especiales</strong> y hacer tu pedido de manera fácil y rápida.</p>
     </div>
-    <div class="line2"></div>
+    <div class="line2"></div>--}}
 </div>
 </body>
 </html>
