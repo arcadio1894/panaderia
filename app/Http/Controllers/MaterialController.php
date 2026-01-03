@@ -360,7 +360,7 @@ class MaterialController extends Controller
             $material->tipo_venta_id = $request->get('tipo_venta');
             $material->perecible = $request->get('perecible');
             $material->codigo = $request->get('codigo');
-            $material->list_price = (float)($request->get('unit_price'));
+            //$material->list_price = (float)($request->get('unit_price'));
             $material->isPack = $request->has('pack') ? 1 : 0;
             $material->quantityPack = $request->has('pack') ? $request->get('inputPack') : 0;
             $material->save();
