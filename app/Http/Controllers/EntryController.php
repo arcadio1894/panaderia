@@ -433,35 +433,39 @@ class EntryController extends Controller
                                 //dd($detail_entry->material->materialType);
                                 if ( isset($detail_entry->material->typeScrap) )
                                 {
-                                    $item = Item::create([
-                                        'detail_entry_id' => $detail_entry->id,
-                                        'material_id' => $detail_entry->material_id,
-                                        'code' => $items[$i]->item,
-                                        'length' => (float)$detail_entry->material->typeScrap->length,
-                                        'width' => (float)$detail_entry->material->typeScrap->width,
-                                        'weight' => 0,
-                                        'price' => round((float)$items[$i]->price,2),
-                                        'percentage' => 1,
-                                        'typescrap_id' => $detail_entry->material->typeScrap->id,
-                                        'location_id' => $items[$i]->id_location,
-                                        'state' => $items[$i]->state,
-                                        'state_item' => 'entered'
-                                    ]);
+                                    if ( $material->tipo_venta_id == 3 ) {
+                                        $item = Item::create([
+                                            'detail_entry_id' => $detail_entry->id,
+                                            'material_id' => $detail_entry->material_id,
+                                            'code' => $items[$i]->item,
+                                            'length' => (float)$detail_entry->material->typeScrap->length,
+                                            'width' => (float)$detail_entry->material->typeScrap->width,
+                                            'weight' => 0,
+                                            'price' => round((float)$items[$i]->price, 2),
+                                            'percentage' => 1,
+                                            'typescrap_id' => $detail_entry->material->typeScrap->id,
+                                            'location_id' => $items[$i]->id_location,
+                                            'state' => $items[$i]->state,
+                                            'state_item' => 'entered'
+                                        ]);
+                                    }
                                     $total_detail = $total_detail + (float)$items[$i]->price;
                                 } else {
-                                    $item = Item::create([
-                                        'detail_entry_id' => $detail_entry->id,
-                                        'material_id' => $detail_entry->material_id,
-                                        'code' => $items[$i]->item,
-                                        'length' => 0,
-                                        'width' => 0,
-                                        'weight' => 0,
-                                        'price' => round((float)$items[$i]->price,2),
-                                        'percentage' => 1,
-                                        'location_id' => $items[$i]->id_location,
-                                        'state' => $items[$i]->state,
-                                        'state_item' => 'entered'
-                                    ]);
+                                    if ( $material->tipo_venta_id == 3 ) {
+                                        $item = Item::create([
+                                            'detail_entry_id' => $detail_entry->id,
+                                            'material_id' => $detail_entry->material_id,
+                                            'code' => $items[$i]->item,
+                                            'length' => 0,
+                                            'width' => 0,
+                                            'weight' => 0,
+                                            'price' => round((float)$items[$i]->price, 2),
+                                            'percentage' => 1,
+                                            'location_id' => $items[$i]->id_location,
+                                            'state' => $items[$i]->state,
+                                            'state_item' => 'entered'
+                                        ]);
+                                    }
                                     $total_detail = $total_detail + (float)$items[$i]->price;
                                 }
                             } else {
@@ -481,35 +485,39 @@ class EntryController extends Controller
                                 //dd($detail_entry->material->materialType);
                                 if ( isset($detail_entry->material->typeScrap) )
                                 {
-                                    $item = Item::create([
-                                        'detail_entry_id' => $detail_entry->id,
-                                        'material_id' => $detail_entry->material_id,
-                                        'code' => $items[$i]->item,
-                                        'length' => (float)$detail_entry->material->typeScrap->length,
-                                        'width' => (float)$detail_entry->material->typeScrap->width,
-                                        'weight' => 0,
-                                        'price' => (float)$price,
-                                        'percentage' => 1,
-                                        'typescrap_id' => $detail_entry->material->typeScrap->id,
-                                        'location_id' => $items[$i]->id_location,
-                                        'state' => $items[$i]->state,
-                                        'state_item' => 'entered'
-                                    ]);
+                                    if ( $material->tipo_venta_id == 3 ) {
+                                        $item = Item::create([
+                                            'detail_entry_id' => $detail_entry->id,
+                                            'material_id' => $detail_entry->material_id,
+                                            'code' => $items[$i]->item,
+                                            'length' => (float)$detail_entry->material->typeScrap->length,
+                                            'width' => (float)$detail_entry->material->typeScrap->width,
+                                            'weight' => 0,
+                                            'price' => (float)$price,
+                                            'percentage' => 1,
+                                            'typescrap_id' => $detail_entry->material->typeScrap->id,
+                                            'location_id' => $items[$i]->id_location,
+                                            'state' => $items[$i]->state,
+                                            'state_item' => 'entered'
+                                        ]);
+                                    }
                                     $total_detail = $total_detail + (float)$items[$i]->price;
                                 } else {
-                                    $item = Item::create([
-                                        'detail_entry_id' => $detail_entry->id,
-                                        'material_id' => $detail_entry->material_id,
-                                        'code' => $items[$i]->item,
-                                        'length' => 0,
-                                        'width' => 0,
-                                        'weight' => 0,
-                                        'price' => (float)$price,
-                                        'percentage' => 1,
-                                        'location_id' => $items[$i]->id_location,
-                                        'state' => $items[$i]->state,
-                                        'state_item' => 'entered'
-                                    ]);
+                                    if ( $material->tipo_venta_id == 3 ) {
+                                        $item = Item::create([
+                                            'detail_entry_id' => $detail_entry->id,
+                                            'material_id' => $detail_entry->material_id,
+                                            'code' => $items[$i]->item,
+                                            'length' => 0,
+                                            'width' => 0,
+                                            'weight' => 0,
+                                            'price' => (float)$price,
+                                            'percentage' => 1,
+                                            'location_id' => $items[$i]->id_location,
+                                            'state' => $items[$i]->state,
+                                            'state_item' => 'entered'
+                                        ]);
+                                    }
                                     $total_detail = $total_detail + (float)$items[$i]->price;
                                 }
                             }
@@ -534,35 +542,41 @@ class EntryController extends Controller
                                 //dd($detail_entry->material->materialType);
                                 if ( isset($detail_entry->material->typeScrap) )
                                 {
-                                    $item = Item::create([
-                                        'detail_entry_id' => $detail_entry->id,
-                                        'material_id' => $detail_entry->material_id,
-                                        'code' => $items[$i]->item,
-                                        'length' => (float)$detail_entry->material->typeScrap->length,
-                                        'width' => (float)$detail_entry->material->typeScrap->width,
-                                        'weight' => 0,
-                                        'price' => round((float)$items[$i]->price,2),
-                                        'percentage' => 1,
-                                        'typescrap_id' => $detail_entry->material->typeScrap->id,
-                                        'location_id' => $items[$i]->id_location,
-                                        'state' => $items[$i]->state,
-                                        'state_item' => 'entered'
-                                    ]);
+                                    if ( $material->tipo_venta_id == 3 )
+                                    {
+                                        $item = Item::create([
+                                            'detail_entry_id' => $detail_entry->id,
+                                            'material_id' => $detail_entry->material_id,
+                                            'code' => $items[$i]->item,
+                                            'length' => (float)$detail_entry->material->typeScrap->length,
+                                            'width' => (float)$detail_entry->material->typeScrap->width,
+                                            'weight' => 0,
+                                            'price' => round((float)$items[$i]->price,2),
+                                            'percentage' => 1,
+                                            'typescrap_id' => $detail_entry->material->typeScrap->id,
+                                            'location_id' => $items[$i]->id_location,
+                                            'state' => $items[$i]->state,
+                                            'state_item' => 'entered'
+                                        ]);
+                                    }
+
                                     $total_detail = $total_detail + (float)$items[$i]->price;
                                 } else {
-                                    $item = Item::create([
-                                        'detail_entry_id' => $detail_entry->id,
-                                        'material_id' => $detail_entry->material_id,
-                                        'code' => $items[$i]->item,
-                                        'length' => 0,
-                                        'width' => 0,
-                                        'weight' => 0,
-                                        'price' => round((float)$items[$i]->price,2),
-                                        'percentage' => 1,
-                                        'location_id' => $items[$i]->id_location,
-                                        'state' => $items[$i]->state,
-                                        'state_item' => 'entered'
-                                    ]);
+                                    if ( $material->tipo_venta_id == 3 ) {
+                                        $item = Item::create([
+                                            'detail_entry_id' => $detail_entry->id,
+                                            'material_id' => $detail_entry->material_id,
+                                            'code' => $items[$i]->item,
+                                            'length' => 0,
+                                            'width' => 0,
+                                            'weight' => 0,
+                                            'price' => round((float)$items[$i]->price, 2),
+                                            'percentage' => 1,
+                                            'location_id' => $items[$i]->id_location,
+                                            'state' => $items[$i]->state,
+                                            'state_item' => 'entered'
+                                        ]);
+                                    }
                                     $total_detail = $total_detail + (float)$items[$i]->price;
                                 }
                             } else {
@@ -582,35 +596,39 @@ class EntryController extends Controller
                                 //dd($detail_entry->material->materialType);
                                 if ( isset($detail_entry->material->typeScrap) )
                                 {
-                                    $item = Item::create([
-                                        'detail_entry_id' => $detail_entry->id,
-                                        'material_id' => $detail_entry->material_id,
-                                        'code' => $items[$i]->item,
-                                        'length' => (float)$detail_entry->material->typeScrap->length,
-                                        'width' => (float)$detail_entry->material->typeScrap->width,
-                                        'weight' => 0,
-                                        'price' => (float)$price,
-                                        'percentage' => 1,
-                                        'typescrap_id' => $detail_entry->material->typeScrap->id,
-                                        'location_id' => $items[$i]->id_location,
-                                        'state' => $items[$i]->state,
-                                        'state_item' => 'entered'
-                                    ]);
+                                    if ( $material->tipo_venta_id == 3 ) {
+                                        $item = Item::create([
+                                            'detail_entry_id' => $detail_entry->id,
+                                            'material_id' => $detail_entry->material_id,
+                                            'code' => $items[$i]->item,
+                                            'length' => (float)$detail_entry->material->typeScrap->length,
+                                            'width' => (float)$detail_entry->material->typeScrap->width,
+                                            'weight' => 0,
+                                            'price' => (float)$price,
+                                            'percentage' => 1,
+                                            'typescrap_id' => $detail_entry->material->typeScrap->id,
+                                            'location_id' => $items[$i]->id_location,
+                                            'state' => $items[$i]->state,
+                                            'state_item' => 'entered'
+                                        ]);
+                                    }
                                     $total_detail = $total_detail + (float)$items[$i]->price;
                                 } else {
-                                    $item = Item::create([
-                                        'detail_entry_id' => $detail_entry->id,
-                                        'material_id' => $detail_entry->material_id,
-                                        'code' => $items[$i]->item,
-                                        'length' => 0,
-                                        'width' => 0,
-                                        'weight' => 0,
-                                        'price' => (float)$price,
-                                        'percentage' => 1,
-                                        'location_id' => $items[$i]->id_location,
-                                        'state' => $items[$i]->state,
-                                        'state_item' => 'entered'
-                                    ]);
+                                    if ( $material->tipo_venta_id == 3 ) {
+                                        $item = Item::create([
+                                            'detail_entry_id' => $detail_entry->id,
+                                            'material_id' => $detail_entry->material_id,
+                                            'code' => $items[$i]->item,
+                                            'length' => 0,
+                                            'width' => 0,
+                                            'weight' => 0,
+                                            'price' => (float)$price,
+                                            'percentage' => 1,
+                                            'location_id' => $items[$i]->id_location,
+                                            'state' => $items[$i]->state,
+                                            'state_item' => 'entered'
+                                        ]);
+                                    }
                                     $total_detail = $total_detail + (float)$items[$i]->price;
                                 }
                             }
