@@ -126,8 +126,7 @@
         BOLETA DE VENTA ELECTRÓNICA</p>
     <p class="centered address bold text-sm" style="text-align: center">{{ $address }}</p>
     <div class="line"></div>--}}
-    <p><b>Fecha Emisión: </b>{{ \Carbon\Carbon::parse($sale->date_sale)->format('d/m/y') }}</p>
-    <p><b>Hora: </b> {{ \Carbon\Carbon::parse($sale->date_sale)->format('H:i') }}</p>
+    <p><b>Fecha: </b>{{ \Carbon\Carbon::parse($sale->date_sale)->format('d/m/Y') }} {{ \Carbon\Carbon::parse($sale->date_sale)->format('H:i') }}</p>
     <div class="line"></div>
     {{--<p style="font-size: 10px; margin: 0; text-align: center">
         {{ $sale->serie }} - {{ $sale->worker->first_name." ".$sale->worker->last_name }} - 4 - 1 - transacción-{{ $sale->serie }}
@@ -156,8 +155,6 @@
         @endforeach
         </tbody>
     </table>
-
-    <div class="separator"></div>
 
     {{--<p class="right">SON: {{ strtoupper(NumeroALetras::convertir($sale->total)) }} SOLES</p>--}}
 

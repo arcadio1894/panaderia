@@ -750,7 +750,7 @@ class PuntoVentaController extends Controller
         //$customPaper = array(0, 0, 226.77, 650); // Ancho y alto en puntos (1 pulgada = 72 puntos)
         //$customPaper = array(0, 0, 250, 650);
         //$pdf->setPaper($customPaper);
-        $customPaper = array(0, 0, 250, 9999); // Ancho fijo, altura suficientemente grande para el contenido
+        $customPaper = array(0, 0, 226.8, 900); // Ancho fijo, altura suficientemente grande para el contenido
         $pdf->setPaper($customPaper, 'portrait');
         $pdf->setOptions([
             'default_font_size' => 12,
