@@ -109,7 +109,10 @@ class PuntoVentaController extends Controller
 
         foreach ( $products as $product )
         {
-            $stock = StoreMaterial::where('material_id', $product->id)->sum('stock_current');
+            $stock = Material::where('material_id', $product->id)
+                    ->select('stock_current')
+                    ->first()
+                    ->stock_current ?? 0;
             array_push($arrayProducts, [
                 "id" => $product->id,
                 "full_name" => $product->full_name,
