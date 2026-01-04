@@ -290,8 +290,8 @@ class PuntoVentaController extends Controller
                 $sale->save();
             } else {
                 // fallback: el trabajador actual logueado, por ejemplo
-                $sale->worker_id = $workerDefault;
-                $sale->caja = $workerDefault;
+                $sale->worker_id = $workerDefault->id;
+                $sale->caja = $workerDefault->id;
                 $sale->save();
             }
 
