@@ -159,6 +159,7 @@ let $sale_id = null;
 let $modalQuantity;
 
 function notAddProduct() {
+    $('#quantity_total').val('');
     $modalQuantity.modal('hide');
 }
 
@@ -218,7 +219,7 @@ function addProductoCartSpecialWithEnter() {
                 "showMethod": "fadeIn",
                 "hideMethod": "fadeOut"
             });
-        $('#quantity_total').val('');
+
     } else {
         showModalQuantity(productId, productPrice, productName, productUnit, productTax, productType, productStock);
     }
