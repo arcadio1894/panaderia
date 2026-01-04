@@ -748,12 +748,12 @@ class PuntoVentaController extends Controller
 
         $view = view('exports.salePdf', compact('sale', 'nameEmpresa', 'ruc', 'address'));
 
-        $pdf = PDF::loadHTML($view);
+        //$pdf = PDF::loadHTML($view);
         // Configurar el tamaño de la página a un tamaño personalizado para el ticket
         //$customPaper = array(0, 0, 226.77, 650); // Ancho y alto en puntos (1 pulgada = 72 puntos)
         //$customPaper = array(0, 0, 250, 650);
         //$pdf->setPaper($customPaper);
-        $customPaper = array(0, 0, 226.8, 900); // Ancho fijo, altura suficientemente grande para el contenido
+        /*$customPaper = array(0, 0, 226.8, 900); // Ancho fijo, altura suficientemente grande para el contenido
         $pdf->setPaper($customPaper, 'portrait');
         $pdf->setOptions([
             'default_font_size' => 12,
@@ -766,7 +766,10 @@ class PuntoVentaController extends Controller
                 'bottom' => 0,
                 'left'   => 0,
             ],
-        ]);
+        ]);*/
+
+        $pdf = Pdf::loadView('exports.salePdf2', compact('sale', 'nameEmpresa', 'ruc', 'address'))
+            ->setPaper([0, 0, 226.8, 900], 'portrait');
 
 
         $length = 5;
