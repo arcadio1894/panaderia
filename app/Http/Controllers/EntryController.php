@@ -346,7 +346,7 @@ class EntryController extends Controller
                     'date_vence' => ($request->get('date_vence') == "" || $request->get('date_vence') == null) ? null: Carbon::createFromFormat('d/m/Y', $request->get('date_vence'))
                 ]);
 
-                if ( $material->perecible == 1 )
+                if ( $material->perecible == 's' )
                 {
                     // TODO: Crear los MaterialVencimientos
                     MaterialVencimiento::create([
