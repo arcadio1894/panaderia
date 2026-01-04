@@ -12,6 +12,13 @@ $(document).ready(function () {
         }
     });
 
+    $('#quantity_total').on('keypress', function (e) {
+        if (e.which === 13) { // Enter
+            e.preventDefault();
+            addProduct();
+        }
+    });
+
     $('#modalVuelto').on('hidden.bs.modal', function () {
         $('#btn-pay').prop('disabled', false);
     });
@@ -155,8 +162,74 @@ function notAddProduct() {
     $modalQuantity.modal('hide');
 }
 
+function addProductoCartSpecialWithEnter() {
+    event.preventDefault(); // Evitar el comportamiento por defecto del enlace
+
+    let productId = $(this).data('product_id');
+    let productPrice = $(this).data('product_price');
+    let productStock = $(this).data('product_stock');
+    let productName = $(this).data('product_name');
+    let productUnit = $(this).data('product_unit');
+    let productTax = $(this).data('product_tax');
+    let productType = $(this).data('product_type');
+
+    // Verificar si el producto ya está en el carrito
+    let existingProduct = $items.find(item => item.productId == productId);
+
+    if ( $modeEdit == 0 )
+    {
+        toastr.error("Lo sentimos ya no puede agregar mas productos, anule o imprima el comprobante.", 'Error', {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": false,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "2000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        });
+        return;
+    }
+
+    if (existingProduct) {
+        // Si el producto ya está en el carrito, puedes actualizar la cantidad
+        toastr.error("El producto "+productName+" ya esta agregado", 'Error',
+            {
+                "closeButton": true,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "2000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            });
+        $('#quantity_total').val('');
+    } else {
+        showModalQuantity(productId, productPrice, productName, productUnit, productTax, productType, productStock);
+    }
+}
+
 function addProductCartSpecial() {
     event.preventDefault(); // Evitar el comportamiento por defecto del enlace
+
+    $modalQuantity.on('shown.bs.modal', function () {
+        $('#quantity_total').trigger('focus');
+    });
 
     let productId = $(this).data('product_id');
     let productPrice = $(this).data('product_price');
