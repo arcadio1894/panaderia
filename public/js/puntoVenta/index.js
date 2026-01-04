@@ -159,7 +159,6 @@ let $sale_id = null;
 let $modalQuantity;
 
 function notAddProduct() {
-    $('#quantity_total').val('');
     $modalQuantity.modal('hide');
 }
 
@@ -306,6 +305,7 @@ function showModalQuantity(productId, productPrice, productName, productUnit, pr
 
 function addProduct() {
     event.preventDefault(); // Evitar el comportamiento por defecto del enlace
+    $('#quantity_total').val('');
 
     let productId =  $("#quantity_productId").val();
     let productPrice = $("#quantity_productPrice").val();
