@@ -1,5 +1,4 @@
 $(document).ready(function () {
-    //$permissions = JSON.parse($('#permissions').val());
 
     setTimeout(function () {
         $('#product_search').focus();
@@ -81,14 +80,15 @@ $(document).ready(function () {
         var $input = $(this);
         var currentValue = parseFloat($input.val());
         var stringDiscount = "";
-        var productId = $input.siblings('button.minus').attr('data-product_id_minus');
+        //var productId = $input.siblings('button.minus').attr('data-product_id_minus');
+        var itemKey = $input.siblings('button.minus').attr('data-item_key_minus');
 
         if (isNaN(currentValue) || currentValue < 0) {
             currentValue = 0;
             $input.val(currentValue.toFixed(2));
         }
 
-        getDiscountMaterial(productId, currentValue.toFixed(2)).then(function(discount) {
+        getDiscountMaterial(itemKey, currentValue.toFixed(2)).then(function(discount) {
             console.log(discount);
             if ( discount != -1 )
             {
@@ -97,12 +97,12 @@ $(document).ready(function () {
                 $input.closest('.flex-grow-1').find('h6[data-discount]').html("");
             }
 
-            updateItems(productId, priceTotal, currentValue);
+            updateItems(itemKey, priceTotal, currentValue);
             updateTotalOrder();
         });
 
-        var string = changeStringPrice(productId, currentValue.toFixed(2));
-        var priceTotal = changePriceTotal(productId, currentValue.toFixed(2));
+        var string = changeStringPrice(itemKey, currentValue.toFixed(2));
+        var priceTotal = changePriceTotal(itemKey, currentValue.toFixed(2));
 
         // Actualizar el string
         $input.closest('.flex-grow-1').find('h6[data-price]').html(string);
@@ -158,70 +158,70 @@ let $modeEdit = 1;
 let $sale_id = null;
 let $modalQuantity;
 
-function notAddProduct() {
-    $modalQuantity.modal('hide');
+let $presentationsCache = {}; // materialId -> array presentations
+
+function buildItemKey(productId, presentationId) {
+    return productId + ':' + (presentationId ? presentationId : 'unit');
 }
 
-function addProductoCartSpecialWithEnter() {
-    event.preventDefault(); // Evitar el comportamiento por defecto del enlace
+function fetchPresentations(productId) {
+    if ($presentationsCache[productId]) {
+        return Promise.resolve($presentationsCache[productId]);
+    }
 
-    let productId = $(this).data('product_id');
-    let productPrice = $(this).data('product_price');
-    let productStock = $(this).data('product_stock');
-    let productName = $(this).data('product_name');
-    let productUnit = $(this).data('product_unit');
-    let productTax = $(this).data('product_tax');
-    let productType = $(this).data('product_type');
-
-    // Verificar si el producto ya está en el carrito
-    let existingProduct = $items.find(item => item.productId == productId);
-
-    if ( $modeEdit == 0 )
-    {
-        toastr.error("Lo sentimos ya no puede agregar mas productos, anule o imprima el comprobante.", 'Error', {
-            "closeButton": true,
-            "debug": false,
-            "newestOnTop": false,
-            "progressBar": true,
-            "positionClass": "toast-top-right",
-            "preventDuplicates": false,
-            "onclick": null,
-            "showDuration": "300",
-            "hideDuration": "1000",
-            "timeOut": "2000",
-            "extendedTimeOut": "1000",
-            "showEasing": "swing",
-            "hideEasing": "linear",
-            "showMethod": "fadeIn",
-            "hideMethod": "fadeOut"
+    return $.get(`/dashboard/materials-presentations/material/${productId}/presentations`)
+        .then(res => {
+            const actives = (res.presentations || []).filter(p => p.active === true || p.active === 1 || p.active === "1");
+            $presentationsCache[productId] = actives;
+            return actives;
         });
+}
+
+function renderPresentationsInModal(presentations) {
+    if (!presentations || presentations.length === 0) {
+        $('#presentationsArea').html('<div class="text-muted">Este producto no tiene presentaciones configuradas.</div>');
         return;
     }
 
-    if (existingProduct) {
-        // Si el producto ya está en el carrito, puedes actualizar la cantidad
-        toastr.error("El producto "+productName+" ya esta agregado", 'Error',
-            {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": false,
-                "progressBar": true,
-                "positionClass": "toast-top-right",
-                "preventDuplicates": false,
-                "onclick": null,
-                "showDuration": "300",
-                "hideDuration": "1000",
-                "timeOut": "2000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-            });
+    let html = `
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered mb-0">
+        <thead>
+          <tr>
+            <th style="width: 45%;">Presentación</th>
+            <th style="width: 25%;">Precio</th>
+            <th style="width: 30%;">Paquetes</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
 
-    } else {
-        showModalQuantity(productId, productPrice, productName, productUnit, productTax, productType, productStock);
-    }
+    presentations.forEach(p => {
+        // si no tienes label, mostramos por cantidad
+        const label = (p.label && p.label.trim()) ? p.label : `${p.quantity} unidades`;
+
+        html += `
+      <tr data-pres-row data-pres-id="${p.id}" data-pres-qty="${p.quantity}" data-pres-price="${p.price}">
+        <td><strong>${label}</strong><div class="text-muted" style="font-size:12px;">Equivale a ${p.quantity} unidades</div></td>
+        <td>S/. ${parseFloat(p.price).toFixed(2)}</td>
+        <td>
+          <input type="number" min="0" step="1" class="form-control form-control-sm" value="0" data-pres-packs>
+        </td>
+      </tr>
+    `;
+    });
+
+    html += `
+        </tbody>
+      </table>
+    </div>
+  `;
+
+    $('#presentationsArea').html(html);
+}
+
+function notAddProduct() {
+    $modalQuantity.modal('hide');
 }
 
 function addProductCartSpecial() {
@@ -240,7 +240,7 @@ function addProductCartSpecial() {
     let productType = $(this).data('product_type');
 
     // Verificar si el producto ya está en el carrito
-    let existingProduct = $items.find(item => item.productId == productId);
+    /*let existingProduct = $items.find(item => item.productId == productId);*/
 
     if ( $modeEdit == 0 )
     {
@@ -264,7 +264,7 @@ function addProductCartSpecial() {
         return;
     }
 
-    if (existingProduct) {
+    /*if (existingProduct) {
         // Si el producto ya está en el carrito, puedes actualizar la cantidad
         toastr.error("El producto "+productName+" ya esta agregado", 'Error',
             {
@@ -286,11 +286,13 @@ function addProductCartSpecial() {
             });
     } else {
         showModalQuantity(productId, productPrice, productName, productUnit, productTax, productType, productStock);
-    }
+    }*/
+    showModalQuantity(productId, productPrice, productName, productUnit, productTax, productType, productStock);
+
 
 }
 
-function showModalQuantity(productId, productPrice, productName, productUnit, productTax, productType, productStock) {
+/*function showModalQuantity(productId, productPrice, productName, productUnit, productTax, productType, productStock) {
 
     $("#quantity_productId").val(productId);
     $("#quantity_productPrice").val(productPrice);
@@ -301,9 +303,39 @@ function showModalQuantity(productId, productPrice, productName, productUnit, pr
     $("#quantity_productType").val(productType);
 
     $modalQuantity.modal('show');
+}*/
+function showModalQuantity(productId, productPrice, productName, productUnit, productTax, productType, productStock) {
+
+    $("#quantity_productId").val(productId);
+    $("#quantity_productPrice").val(productPrice);
+    $("#quantity_productStock").val(productStock);
+    $("#quantity_productName").val(productName);
+    $("#quantity_productUnit").val(productUnit);
+    $("#quantity_productTax").val(productTax);
+    $("#quantity_productType").val(productType);
+
+    // reset inputs
+    $("#quantity_total").val(0);
+    $("#quantity_stock_show").val(productStock);
+    $("#presentationsArea").html('<div class="text-muted">Cargando presentaciones...</div>');
+
+    // cargar presentaciones activas
+    fetchPresentations(productId)
+        .then(presentations => {
+            renderPresentationsInModal(presentations);
+            $modalQuantity.modal('show');
+
+            $modalQuantity.on('shown.bs.modal', function () {
+                $('#quantity_total').trigger('focus');
+            });
+        })
+        .catch(() => {
+            $('#presentationsArea').html('<div class="text-danger">No se pudo cargar presentaciones.</div>');
+            $modalQuantity.modal('show');
+        });
 }
 
-function addProduct() {
+/*function addProduct() {
     event.preventDefault(); // Evitar el comportamiento por defecto del enlace
 
 
@@ -362,20 +394,6 @@ function addProduct() {
         // Renderizar el producto en el carrito
         renderDataCartQuantity(productId, productPrice, productName, productUnit, quantity);
 
-        //updateTotalOrder();
-
-        /*getDiscountMaterial(productId, quantity).then(function(discount) {
-            //console.log(discount);
-            $input.closest('.flex-grow-1').find('h6[data-discount]').html(discount.stringDiscount);
-            updateItems(productId, precio, quantity);
-            updateTotalOrder();
-        });
-
-        // Actualizar el string
-        $input.closest('.flex-grow-1').find('h6[data-price]').html(string);
-        // Actualizar el precio total
-        $input.closest('.d-flex').find('p[data-priceTotal]').html(precio);*/
-
     } else {
         // No permitir decimales en quantity
         if (quantity % 1 !== 0) {
@@ -419,6 +437,183 @@ function addProduct() {
     //renderDataCart(productId, productPrice, productName, productUnit);
     $('#quantity_total').val('');
     $modalQuantity.modal('hide');
+}*/
+function addProduct() {
+    event.preventDefault();
+
+    let productId = $("#quantity_productId").val();
+    let unitPrice = parseFloat($("#quantity_productPrice").val());
+    let productStock = parseFloat($("#quantity_productStock").val());
+    let productName = $("#quantity_productName").val();
+    let productUnit = $("#quantity_productUnit").val();
+    let productTax = parseFloat($("#quantity_productTax").val());
+    let productType = $("#quantity_productType").val();
+
+    // Cantidad unitaria
+    let unitQty = parseFloat($("#quantity_total").val()) || 0;
+
+    // Presentaciones seleccionadas
+    let rows = [];
+    $('#presentationsArea').find('tr[data-pres-row]').each(function () {
+        const presId = parseInt($(this).attr('data-pres-id'), 10);
+        const presQty = parseInt($(this).attr('data-pres-qty'), 10);
+        const presPrice = parseFloat($(this).attr('data-pres-price'));
+
+        const packs = parseInt($(this).find('[data-pres-packs]').val(), 10) || 0;
+
+        if (packs > 0) {
+            rows.push({
+                presentationId: presId,
+                presentationQty: presQty,     // equiv en unidades
+                price: presPrice,             // precio por paquete
+                packs: packs
+            });
+        }
+    });
+
+    // Nada ingresado
+    if (unitQty <= 0 && rows.length === 0) {
+        toastr.error("Ingrese cantidad (unidad) o paquetes de alguna presentación.", 'Error', { "closeButton": true });
+        return;
+    }
+
+    // Validar decimales por tipo SOLO para unidad (presentaciones siempre enteras)
+    if (productType != 2 && unitQty % 1 !== 0) {
+        toastr.error("Este tipo de producto no acepta decimales en venta por unidad.", 'Error', { "closeButton": true });
+        $("#quantity_total").val(Math.floor(unitQty));
+        return;
+    }
+
+    // Stock equivalente requerido (en unidades)
+    let unitsRequired = 0;
+
+    // unidad
+    if (unitQty > 0) unitsRequired += unitQty;
+
+    // presentaciones
+    rows.forEach(r => {
+        unitsRequired += (r.packs * r.presentationQty);
+    });
+
+    if (productStock < unitsRequired) {
+        toastr.error(`La cantidad sobrepasa el stock del material. Stock: ${productStock} unidades. Requerido: ${unitsRequired} unidades.`, 'Error', { "closeButton": true });
+        return;
+    }
+
+    // 1) Agregar fila unitaria si aplica
+    if (unitQty > 0) {
+        const itemKey = buildItemKey(productId, null);
+
+        // bloquear duplicado exacto: misma presentación (unit)
+        let existing = $items.find(x => x.itemKey === itemKey);
+        if (existing) {
+            toastr.error(`El producto ${productName} (Unidad) ya está agregado. Use + / - para modificar.`, 'Error', { "closeButton": true });
+        } else {
+            const qtyToUse = (productType == 2) ? parseFloat(unitQty) : Math.floor(unitQty);
+            const total = (qtyToUse * unitPrice).toFixed(2);
+
+            $items.push({
+                itemKey: itemKey,
+                productId: productId,
+                presentationId: null,
+                presentationQty: 1,
+                presentationLabel: 'Unidad',
+                priceEffective: unitPrice,     // precio por unidad
+                productPrice: unitPrice,
+                productName: productName,
+                productUnit: productUnit,
+                productTax: productTax,
+                productTotal: total,
+                productTotalTaxes: parseFloat(total * (1 + (productTax / 100))).toFixed(2),
+                productTaxes: parseFloat(total * (productTax / 100)).toFixed(2),
+                productQuantity: qtyToUse,     // cantidad ingresada (unidades)
+                unitsEquivalent: qtyToUse,     // unidades para stock
+                productDiscount: 0
+            });
+
+            renderDataCartRow(itemKey);
+        }
+    }
+
+    // 2) Agregar filas por cada presentación
+    rows.forEach(r => {
+        const itemKey = buildItemKey(productId, r.presentationId);
+
+        let existing = $items.find(x => x.itemKey === itemKey);
+        if (existing) {
+            toastr.error(`El producto ${productName} (${r.presentationQty} unidades) ya está agregado. Use + / - para modificar.`, 'Error', { "closeButton": true });
+            return;
+        }
+
+        const total = (r.packs * r.price).toFixed(2);
+
+        $items.push({
+            itemKey: itemKey,
+            productId: productId,
+            presentationId: r.presentationId,
+            presentationQty: r.presentationQty,
+            presentationLabel: `${r.presentationQty} unidades`,
+            priceEffective: r.price,        // precio por paquete
+            productPrice: r.price,
+            productName: productName,
+            productUnit: productUnit,
+            productTax: productTax,
+            productTotal: total,
+            productTotalTaxes: parseFloat(total * (1 + (productTax / 100))).toFixed(2),
+            productTaxes: parseFloat(total * (productTax / 100)).toFixed(2),
+            productQuantity: r.packs,       // cantidad ingresada (paquetes)
+            unitsEquivalent: (r.packs * r.presentationQty), // unidades para stock
+            productDiscount: 0
+        });
+
+        renderDataCartRow(itemKey);
+    });
+
+    // cerrar
+    $('#quantity_total').val(0);
+    $modalQuantity.modal('hide');
+
+    updateTotalOrder();
+}
+
+function renderDataCartRow(itemKey) {
+    const item = $items.find(x => x.itemKey === itemKey);
+    if (!item) return;
+
+    var clone = activateTemplate('#item-cart');
+
+    // delete por itemKey
+    clone.querySelector("[data-delete]").setAttribute("data-delete", itemKey);
+
+    // nombre
+    clone.querySelector("[data-name]").innerHTML = item.productName;
+
+    // label de presentación
+    const presLabel = item.presentationId ? `Presentación: ${item.presentationLabel}` : `Presentación: Unidad`;
+    clone.querySelector("[data-presentation_label]").innerHTML = presLabel;
+
+    // texto precio
+    clone.querySelector("[data-price]").innerHTML = changeStringPrice(itemKey, item.productQuantity);
+
+    // botones +/- por itemKey
+    clone.querySelector("[data-item_key_minus]").setAttribute("data-item_key_minus", itemKey);
+    clone.querySelector("[data-item_key_plus]").setAttribute("data-item_key_plus", itemKey);
+
+    // input quantity
+    var quantityInput = clone.querySelector("[data-quantity]");
+    if (quantityInput) {
+        // presentaciones: step 1, unidad: si tipo=2 permite decimal
+        quantityInput.step = (item.presentationId ? 1 : (item.productType == 2 ? 0.01 : 1));
+        quantityInput.value = item.productQuantity;
+    }
+
+    // total
+    clone.querySelector("[data-priceTotal]").innerHTML = parseFloat(item.productTotal).toFixed(2);
+
+    $("#body-cart").append(clone);
+
+    // disparar update visual
+    if (quantityInput) $(quantityInput).trigger('input');
 }
 
 function newSale() {
@@ -627,10 +822,6 @@ function guardarVenta() {
         }
     }
 
-    /*var createUrl = $formCreate.data('url');
-    var items = JSON.stringify($items);
-    var formulario = $('#formCreate')[0];
-    var form = new FormData(formulario);*/
     var tipo_pago = $('input[name="tipo_pago"]:checked').val();
 
     var tipo_pago_text = $('input[name="tipo_pago"]:checked').siblings('label').text().trim();
@@ -726,7 +917,7 @@ function guardarVenta() {
     });
 }
 
-function deleteItem() {
+/*function deleteItem() {
     if ( $modeEdit == 0 )
     {
         toastr.error("Lo sentimos ya no puede quitar productos, anule o imprima el comprobante.", 'Error', {
@@ -756,31 +947,59 @@ function deleteItem() {
     updateTotalOrder();
 
     $(this).parent().parent().remove();
+}*/
+
+function deleteItem() {
+    if ($modeEdit == 0) {
+        toastr.error("Lo sentimos ya no puede quitar productos, anule o imprima el comprobante.", 'Error', { "closeButton": true });
+        return;
+    }
+
+    let itemKey = $(this).attr('data-delete');
+
+    $items = $items.filter(item => item.itemKey !== itemKey);
+
+    updateTotalOrder();
+
+    $(this).closest('[data-cart-row]').remove();
 }
 
-function updateItems(product_id, precioTotal, quantity) {
+/*function updateItems(product_id, precioTotal, quantity) {
     let result = $items.find( item => item.productId == product_id );
     result.productTotal = parseFloat(precioTotal).toFixed(2);
     result.productQuantity = quantity;
+}*/
+function updateItems(itemKey, precioTotal, quantity) {
+    let result = $items.find(item => item.itemKey === itemKey);
+    if (!result) return;
+
+    result.productQuantity = quantity;
+
+    // Recalcular equivalente de stock:
+    // unidad => quantity
+    // presentación => quantity * presentationQty
+    result.unitsEquivalent = result.presentationId ? (quantity * result.presentationQty) : quantity;
+
+    result.productTotal = parseFloat(precioTotal).toFixed(2);
 }
 
 function decrementQuantity(button) {
     var $input = $(button).siblings('input[type="number"]');
     var currentValue = parseFloat($input.val());
     var step = parseFloat($input.attr('step')) || 0.01;
-
+    let itemKey = $(button).attr('data-item_key_minus');
     var string = "";
     var priceTotal = 0;
     var stringDiscount = "";
 
     if (currentValue > 0) {
         $input.val((currentValue - step).toFixed(2)).trigger('change');
-        string = changeStringPrice( $(button).attr('data-product_id_minus'), (currentValue - step).toFixed(2) );
-        priceTotal = changePriceTotal( $(button).attr('data-product_id_minus'), (currentValue - step).toFixed(2) );
+        string = changeStringPrice( itemKey, (currentValue - step).toFixed(2) );
+        priceTotal = changePriceTotal( itemKey, (currentValue - step).toFixed(2) );
         $(button).closest('.flex-grow-1').find('h6[data-price]').html(string);
         $(button).closest('.d-flex').find('p[data-priceTotal]').html(priceTotal);
 
-        getDiscountMaterial($(button).attr('data-product_id_minus'), currentValue - step).then(function(discount) {
+        getDiscountMaterial(itemKey, currentValue - step).then(function(discount) {
             console.log(discount);
             if ( discount != -1 )
             {
@@ -792,17 +1011,17 @@ function decrementQuantity(button) {
             //updateItems($(button).attr('data-product_id_plus', currentValue + step), priceTotal, currentValue + step);
         });
 
-        updateItems($(button).attr('data-product_id_minus'), priceTotal, currentValue - step);
+        updateItems(itemKey, priceTotal, currentValue - step);
 
         updateTotalOrder();
     } else {
         $input.val(0);
-        string = changeStringPrice( $(button).attr('data-product_id_minus'), 0 );
-        priceTotal = changePriceTotal( $(button).attr('data-product_id_minus'), 0 );
+        string = changeStringPrice( itemKey, 0 );
+        priceTotal = changePriceTotal( itemKey, 0 );
         $(button).closest('.flex-grow-1').find('h6[data-price]').html(string);
         $(button).closest('.d-flex').find('p[data-priceTotal]').html(priceTotal);
 
-        getDiscountMaterial($(button).attr('data-product_id_minus'), currentValue - step).then(function(discount) {
+        getDiscountMaterial(itemKey, currentValue - step).then(function(discount) {
             console.log(discount);
             //$(button).closest('.flex-grow-1').find('h6[data-discount]').html(discount.stringDiscount);
             if ( discount != -1 )
@@ -814,26 +1033,43 @@ function decrementQuantity(button) {
             //updateItems($(button).attr('data-product_id_plus', currentValue + step), priceTotal, currentValue + step);
         });
 
-        updateItems($(button).attr('data-product_id_minus'), priceTotal, 0);
+        updateItems(itemKey, priceTotal, 0);
 
         updateTotalOrder();
     }
     //console.log(string);
 }
 
-function changePriceTotal(product_id, quantity) {
+/*function changePriceTotal(product_id, quantity) {
     let result = $items.find( item => item.productId == product_id );
     let priceTotal;
     priceTotal = (quantity * result.productPrice).toFixed(2);
     return priceTotal;
+}*/
+function changePriceTotal(itemKey, quantity) {
+    let result = $items.find(item => item.itemKey === itemKey);
+    if (!result) return "0.00";
+    return (quantity * result.productPrice).toFixed(2);
 }
 
-function changeStringPrice(product_id, quantity) {
+/*function changeStringPrice(product_id, quantity) {
     let result = $items.find( item => item.productId == product_id );
     //let priceTotal = quantity*result.productPrice;
     let stringTotal;
     stringTotal = "<strong>" + quantity + "</strong> " + result.productUnit + " a " + result.productPrice + " / Unit";
     return stringTotal;
+}*/
+function changeStringPrice(itemKey, quantity) {
+    let result = $items.find(item => item.itemKey === itemKey);
+    if (!result) return "";
+
+    if (result.presentationId) {
+        // paquetes
+        return `<strong>${quantity}</strong> paquetes (${result.presentationQty} u) a S/. ${parseFloat(result.productPrice).toFixed(2)} / paquete`;
+    } else {
+        // unidad
+        return `<strong>${quantity}</strong> ${result.productUnit} a S/. ${parseFloat(result.productPrice).toFixed(2)} / unidad`;
+    }
 }
 
 function incrementQuantity(button) {
@@ -841,22 +1077,22 @@ function incrementQuantity(button) {
     var $input = $(button).siblings('input[type="number"]');
     var currentValue = parseFloat($input.val());
     var step = parseFloat($input.attr('step')) || 0.01;
-
+    let itemKey = $(button).attr('data-item_key_minus');
     $input.val((currentValue + step).toFixed(2)).trigger('change');
 
     var string = "";
     var priceTotal = 0;
     var discount = 0;
 
-    string = changeStringPrice( $(button).attr('data-product_id_plus'), (currentValue + step).toFixed(2) );
-    priceTotal = changePriceTotal( $(button).attr('data-product_id_plus'), (currentValue + step).toFixed(2) );
+    string = changeStringPrice( itemKey, (currentValue + step).toFixed(2) );
+    priceTotal = changePriceTotal( itemKey, (currentValue + step).toFixed(2) );
     //console.log(string);
 
     $(button).closest('.flex-grow-1').find('h6[data-price]').html(string);
     $(button).closest('.d-flex').find('p[data-priceTotal]').text(priceTotal);
 
     // Maneja la promesa retornada por getDiscountMaterial
-    getDiscountMaterial($(button).attr('data-product_id_plus'), currentValue + step).then(function(discount) {
+    getDiscountMaterial(itemKey, currentValue + step).then(function(discount) {
         console.log(discount);
         //$(button).closest('.flex-grow-1').find('h6[data-discount]').html(discount.stringDiscount);
         if ( discount != -1 )
@@ -870,7 +1106,7 @@ function incrementQuantity(button) {
 
     //$(button).closest('.flex-grow-1').find('h6[data-discount]').html(discount.stringDiscount);
 
-    updateItems($(button).attr('data-product_id_plus'), priceTotal, currentValue + step);
+    updateItems(itemKey, priceTotal, currentValue + step);
     
     updateTotalOrder();
 }
@@ -898,18 +1134,15 @@ Importe Total:
     var total_igv_bruto=0;
     for ( let i = 0; i < $items.length; i++ )
     {
-        //var total_exonerada=0;
         if ( $items[i].productTax == 0 )
         {
             total_exonerada = total_exonerada + parseFloat($items[i].productTotal);
         }
 
-        //var total_gravada=0;
         if ( $items[i].productTax != 0 )
         {
             total_gravada = total_gravada + (($items[i].productTotal-$items[i].productDiscount)/(1+($items[i].productTax/100)));
         }
-        //var total_igv=0;
 
         if ( $items[i].productTax != 0 )
         {
@@ -918,7 +1151,6 @@ Importe Total:
 
         total_igv = total_igv_bruto-total_gravada;
 
-        //var total_descuentos=0;
         if ( $items[i].productDiscount != 0 )
         {
             total_descuentos = total_descuentos + $items[i].productDiscount;
@@ -1015,79 +1247,63 @@ function getDiscountMaterial(product_id, quantity) {
 }
 
 function addProductCart() {
-    event.preventDefault(); // Evitar el comportamiento por defecto del enlace
+    event.preventDefault();
 
     let productId = $(this).data('product_id');
-    let productPrice = $(this).data('product_price');
+    let productPrice = parseFloat($(this).data('product_price'));
+    let productStock = parseFloat($(this).data('product_stock'));
     let productName = $(this).data('product_name');
     let productUnit = $(this).data('product_unit');
-    let productTax = $(this).data('product_tax');
+    let productTax = parseFloat($(this).data('product_tax'));
+    let productType = $(this).data('product_type'); // si no existe en normal, puedes dejarlo null
 
-    // Verificar si el producto ya está en el carrito
-    let existingProduct = $items.find(item => item.productId == productId);
-
-    if ( $modeEdit == 0 )
-    {
-        toastr.error("Lo sentimos ya no puede agregar mas productos, anule o imprima el comprobante.", 'Error', {
-            "closeButton": true,
-            "debug": false,
-            "newestOnTop": false,
-            "progressBar": true,
-            "positionClass": "toast-top-right",
-            "preventDuplicates": false,
-            "onclick": null,
-            "showDuration": "300",
-            "hideDuration": "1000",
-            "timeOut": "2000",
-            "extendedTimeOut": "1000",
-            "showEasing": "swing",
-            "hideEasing": "linear",
-            "showMethod": "fadeIn",
-            "hideMethod": "fadeOut"
-        });
+    if ($modeEdit == 0) {
+        toastr.error("Lo sentimos ya no puede agregar mas productos, anule o imprima el comprobante.", 'Error', { "closeButton": true });
         return;
     }
 
-    if (existingProduct) {
-        // Si el producto ya está en el carrito, puedes actualizar la cantidad
-        toastr.error("El producto "+productName+" ya esta agregado", 'Error',
-            {
-            "closeButton": true,
-            "debug": false,
-            "newestOnTop": false,
-            "progressBar": true,
-            "positionClass": "toast-top-right",
-            "preventDuplicates": false,
-            "onclick": null,
-            "showDuration": "300",
-            "hideDuration": "1000",
-            "timeOut": "2000",
-            "extendedTimeOut": "1000",
-            "showEasing": "swing",
-            "hideEasing": "linear",
-            "showMethod": "fadeIn",
-            "hideMethod": "fadeOut"
-        });
-    } else {
-        // Si el producto no está en el carrito, agregarlo
-        $items.push({
-            "productId": productId,
-            "productPrice": productPrice,
-            "productName": productName,
-            "productUnit": productUnit,
-            "productTax": productTax,
-            "productTotal": productPrice,
-            "productTotalTaxes": parseFloat(productPrice*(1+(productTax/100))).toFixed(2),
-            "productTaxes": parseFloat(productPrice*(productTax/100)).toFixed(2),
-            "productQuantity": 1,
-            "productDiscount": 0
-        });
+    // 👇 clave única para “unidad”
+    const itemKey = buildItemKey(productId, null);
 
-        // Renderizar el producto en el carrito
-        renderDataCart(productId, productPrice, productName, productUnit);
+    // Si ya existe la fila unidad, no agregues otra: usa +/-
+    let existing = $items.find(x => x.itemKey === itemKey);
+
+    if (existing) {
+        toastr.error(`El producto ${productName} (Unidad) ya está agregado. Use + / - para modificar.`, 'Error', { "closeButton": true });
+        return;
     }
+
+    // validar stock (unidad)
+    if (productStock < 1) {
+        toastr.error("Stock insuficiente.", 'Error', { "closeButton": true });
+        return;
+    }
+
+    // agregar item “unit”
+    $items.push({
+        itemKey: itemKey,
+        productId: productId,
+        presentationId: null,
+        presentationQty: 1,
+        presentationLabel: 'Unidad',
+        priceEffective: productPrice,
+        productPrice: productPrice,
+        productName: productName,
+        productUnit: productUnit,
+        productTax: productTax,
+        productTotal: parseFloat(productPrice * 1).toFixed(2),
+        productTotalTaxes: parseFloat((productPrice * 1) * (1 + (productTax / 100))).toFixed(2),
+        productTaxes: parseFloat((productPrice * 1) * (productTax / 100)).toFixed(2),
+        productQuantity: 1,       // unidades
+        unitsEquivalent: 1,       // unidades
+        productDiscount: 0,
+        productType: productType  // si lo usas en step etc
+    });
+
+    // ✅ usa el nuevo render
+    renderDataCartRow(itemKey);
+
     updateTotalOrder();
-    //renderDataCart(productId, productPrice, productName, productUnit);
 }
 
 function renderDataCart(productId, productPrice, productName, productUnit) {

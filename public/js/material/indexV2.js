@@ -1,5 +1,8 @@
 $(document).ready(function () {
     $permissions = JSON.parse($('#permissions').val());
+
+    let currentMaterialId = null;
+
     //console.log($permissions);
 
     $('.custom-control-input').change(function() {
@@ -301,6 +304,176 @@ $(document).ready(function () {
             }
         });
     });
+
+    // Abrir modal
+    $(document).on('click', '[data-manage_presentations]', function () {
+        currentMaterialId = $(this).data('material');
+        const desc = $(this).data('description') || '';
+
+        $('#mp-material-title').text(desc ? `— ${desc}` : '');
+        $('#presentaciones-content').html('<div class="text-muted">Cargando...</div>');
+
+        $('#modalPresentaciones').modal('show');
+        loadPresentations(currentMaterialId);
+    });
+
+    // Recargar
+    $(document).on('click', '[data-mp-refresh]', function () {
+        if (!currentMaterialId) return;
+        loadPresentations(currentMaterialId);
+    });
+
+    // Crear
+    $(document).on('click', '[data-mp-create]', function () {
+        if (!currentMaterialId) return;
+
+        const quantity = $('[data-mp-new-quantity]').val();
+        const price = $('[data-mp-new-price]').val();
+
+        if (!quantity || !price) {
+            return $.alert({ title: 'Validación', content: 'Completa cantidad y precio.' });
+        }
+
+        $.confirm({
+            title: 'Confirmar',
+            content: '¿Deseas crear esta presentación?',
+            buttons: {
+                cancelar: function () {},
+                confirmar: {
+                    btnClass: 'btn-success',
+                    action: function () {
+                        return $.post(`/dashboard/materials-presentations/material/${currentMaterialId}/presentations`, { quantity, price })
+                            .done(res => {
+                                const p = res.presentation;
+                                const $list = $('#mp-list');
+
+                                const rowHtml = buildRowHtml(p); // ✅ aquí
+
+                                if ($list.find('[data-mp-row]').length === 0) $list.empty();
+
+                                $list.prepend(rowHtml);
+
+                                $('[data-mp-new-quantity]').val('');
+                                $('[data-mp-new-price]').val('');
+
+                                $.alert({ title: 'OK', content: res.message });
+                            })
+                            .fail(xhr => {
+                                $.alert({
+                                    title: 'Error',
+                                    content: xhr.responseJSON?.message || 'No se pudo crear.'
+                                });
+                            });
+                    }
+                }
+            }
+        });
+    });
+
+    // Editar (habilita inputs)
+    $(document).on('click', '[data-mp-edit]', function () {
+        const $row = $(this).closest('[data-mp-row]');
+        $row.find('[data-mp-quantity],[data-mp-price]').prop('disabled', false);
+
+        // guardar valores originales para cancelar
+        $row.data('origQuantity', $row.find('[data-mp-quantity]').val());
+        $row.data('origPrice', $row.find('[data-mp-price]').val());
+
+        $row.find('[data-mp-edit]').addClass('d-none');
+        $row.find('[data-mp-save],[data-mp-cancel]').removeClass('d-none');
+    });
+
+    // Cancelar edición
+    $(document).on('click', '[data-mp-cancel]', function () {
+        const $row = $(this).closest('[data-mp-row]');
+        $row.find('[data-mp-quantity]').val($row.data('origQuantity')).prop('disabled', true);
+        $row.find('[data-mp-price]').val($row.data('origPrice')).prop('disabled', true);
+
+        $row.find('[data-mp-edit]').removeClass('d-none');
+        $row.find('[data-mp-save],[data-mp-cancel]').addClass('d-none');
+    });
+
+    // Guardar edición
+    $(document).on('click', '[data-mp-save]', function () {
+        const $row = $(this).closest('[data-mp-row]');
+        const id = $row.data('id');
+
+        const quantity = $row.find('[data-mp-quantity]').val();
+        const price = $row.find('[data-mp-price]').val();
+
+        if (!quantity || !price) {
+            return $.alert({ title: 'Validación', content: 'Completa cantidad y precio.' });
+        }
+
+        $.confirm({
+            title: 'Confirmar',
+            content: '¿Guardar cambios en esta presentación?',
+            buttons: {
+                cancelar: function () {},
+                confirmar: {
+                    btnClass: 'btn-primary',
+                    action: function () {
+                        return $.ajax({
+                            url: `/dashboard/materials-presentations/presentation/${id}`,
+                            method: 'PUT',
+                            data: { quantity, price }
+                        })
+                            .done(res => {
+                                $row.find('[data-mp-quantity],[data-mp-price]').prop('disabled', true);
+
+                                $row.find('[data-mp-edit]').removeClass('d-none');
+                                $row.find('[data-mp-save],[data-mp-cancel]').addClass('d-none');
+
+                                $.alert({ title: 'OK', content: res.message });
+                            })
+                            .fail(xhr => {
+                                $.alert({
+                                    title: 'Error',
+                                    content: xhr.responseJSON?.message || 'No se pudo actualizar.'
+                                });
+                            });
+                    }
+                }
+            }
+        });
+    });
+
+    // Eliminar
+    $(document).on('click', '[data-mp-toggle]', function () {
+        const $row = $(this).closest('[data-mp-row]');
+        const id = $row.data('id');
+        const active = parseInt($row.attr('data-active'), 10) === 1;
+
+        $.confirm({
+            title: active ? 'Desactivar' : 'Activar',
+            content: active
+                ? '¿Seguro que deseas desactivar esta presentación? No aparecerá al vender, pero quedará para historial.'
+                : '¿Seguro que deseas activar esta presentación? Volverá a estar disponible en ventas.',
+            buttons: {
+                cancelar: function () {},
+                confirmar: {
+                    btnClass: active ? 'btn-danger' : 'btn-success',
+                    action: function () {
+                        return $.ajax({
+                            url: `/dashboard/materials-presentations/presentation/${id}/toggle`,
+                            method: 'PATCH'
+                        })
+                            .done(res => {
+                                // Lo más simple y seguro: recargar lista desde server
+                                loadPresentations(currentMaterialId);
+                                $.alert({ title: 'OK', content: res.message });
+                            })
+                            .fail(xhr => {
+                                $.alert({
+                                    title: 'Error',
+                                    content: xhr.responseJSON?.message || 'No se pudo cambiar el estado.'
+                                });
+                            });
+                    }
+                }
+            }
+        });
+    });
 });
 
 var $formAssignChild;
@@ -321,6 +494,68 @@ var $modalPrecioPercentage;
 var $formPrecioDirecto;
 var $formPrecioPorcentaje;
 
+function tpl(id, data) {
+    let html = $(id).html();
+    Object.keys(data || {}).forEach(k => {
+        const v = (data[k] ?? '').toString();
+        html = html.replaceAll('{' + k + '}', v);
+    });
+    return html;
+}
+
+function moneyFormat(v) {
+    // si quieres forzar 2 decimales visualmente:
+    // return (parseFloat(v) || 0).toFixed(2);
+    return v;
+}
+
+function renderModal(material, presentations) {
+    $('#mp-material-title').text(material?.description ? `— ${material.description}` : '');
+    $('#presentaciones-content').html(tpl('#tpl-mp-wrapper'));
+
+    const $list = $('#mp-list');
+    $list.empty();
+
+    if (!presentations || !presentations.length) {
+        $list.html('<div class="text-muted">No hay presentaciones registradas aún.</div>');
+        return;
+    }
+
+    presentations.forEach(p => {
+        $list.append(buildRowHtml(p));
+    });
+}
+
+function loadPresentations(materialId) {
+    return $.get(`/dashboard/materials-presentations/material/${materialId}/presentations`)
+        .done(res => renderModal(res.material, res.presentations))
+        .fail(xhr => {
+            $.alert({
+                title: 'Error',
+                content: xhr.responseJSON?.message || 'No se pudo cargar las presentaciones.'
+            });
+        });
+}
+
+function buildRowHtml(p) {
+    const isActive = (p.active === true || p.active === 1 || p.active === "1");
+
+    return tpl('#tpl-mp-row', {
+        id: p.id,
+        quantity: p.quantity,
+        price: moneyFormat(p.price),
+        active: isActive ? 1 : 0,
+
+        row_class: isActive ? '' : 'bg-light text-muted',
+        badge_class: isActive ? 'badge-success' : 'badge-secondary',
+        status_text: isActive ? 'ACTIVA' : 'INACTIVA',
+
+        toggle_text: isActive ? 'Desactivar' : 'Activar',
+        toggle_btn_class: isActive ? 'btn-outline-danger' : 'btn-outline-success',
+
+        edit_disabled: isActive ? '' : 'disabled'
+    });
+}
 
 function submitAssignChild() {
     var child_id = $('#material').val();
@@ -1302,6 +1537,9 @@ function renderDataTable(data, activeColumns) {
 
     clone.querySelector("[data-show_vencimiento]").setAttribute("data-material", data.id);
     clone.querySelector("[data-show_vencimiento]").setAttribute("data-description", data.descripcion);
+
+    clone.querySelector("[data-manage_presentations]").setAttribute("data-material", data.id);
+    clone.querySelector("[data-manage_presentations]").setAttribute("data-description", data.descripcion);
 
     /*let url3 = document.location.origin + '/dashboard/enviar/material/a/tienda/' + data.id;
     clone.querySelector("[data-send_store]").setAttribute("href", url3);*/

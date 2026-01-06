@@ -638,13 +638,6 @@
                 </div>
             </div>
         </div>
-        {{--<div class="row">
-            <div class="col-12">
-                <button type="reset" class="btn btn-outline-secondary">Cancelar</button>
-                <button type="submit" id="btn-submit" class="btn btn-outline-success float-right">Guardar venta</button>
-            </div>
-        </div>--}}
-        <!-- /.card-footer -->
     </form>
 
     <div id="modalVuelto" class="modal fade" tabindex="-1">
@@ -692,7 +685,7 @@
         </div>
     </div>
 
-    <div id="modalQuantity" class="modal fade" tabindex="-1">
+    {{--<div id="modalQuantity" class="modal fade" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -722,9 +715,64 @@
                 </div>
             </div>
         </div>
+    </div>--}}
+    <div id="modalQuantity" class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h4 class="modal-title">Ingrese cantidad / presentaciones</h4>
+                </div>
+
+                <input type="hidden" id="quantity_productId">
+                <input type="hidden" id="quantity_productPrice">
+                <input type="hidden" id="quantity_productStock">
+                <input type="hidden" id="quantity_productName">
+                <input type="hidden" id="quantity_productUnit">
+                <input type="hidden" id="quantity_productTax">
+                <input type="hidden" id="quantity_productType">
+
+                <div class="modal-body">
+
+                    <!-- Cantidad unitaria (igual que antes) -->
+                    <div class="form-group row">
+                        <div class="col-md-6">
+                            <label for="quantity_total">Cantidad (Unidad)</label>
+                            <input type="number" min="0" step="1" class="form-control" id="quantity_total" value="0">
+                            <small class="text-muted">Esto vende en unidad usando el precio base del producto.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Stock disponible (unidades)</label>
+                            <input type="text" class="form-control" id="quantity_stock_show" readonly>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Presentaciones -->
+                    <div class="mb-2">
+                        <strong>Presentaciones</strong>
+                        <div class="text-muted" style="font-size: 12px;">
+                            Ingresa cuántos “paquetes” (docenas, cuartos, etc.) quieres vender.
+                        </div>
+                    </div>
+
+                    <div id="presentationsArea">
+                        <div class="text-muted">Cargando presentaciones...</div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-notAddProduct">Cancelar</button>
+                    <button type="button" id="btn-add_product" class="btn btn-success">Agregar</button>
+                </div>
+
+            </div>
+        </div>
     </div>
 
-    <template id="item-cart">
+    {{--<template id="item-cart">
         <div class="d-flex align-items-center mb-3 w-100">
             <div class="flex-grow-1 ms-3">
                 <a href="#!" class="float-right" data-delete><i class="fas fa-times"></i></a>
@@ -742,7 +790,46 @@
                 <div class="align-items-center justify-content-between">
                     <h6 class="text-success" data-discount></h6>
                 </div>
-                {{--<h6 class="text-success" data-discount></h6>--}}
+
+                <hr class="mb-4" style="height: 0.8px; background-color: #9e9e9e; opacity: 1;">
+            </div>
+        </div>
+    </template>--}}
+
+    <template id="item-cart">
+        <div class="d-flex align-items-center mb-3 w-100" data-cart-row>
+            <div class="flex-grow-1 ms-3">
+
+                <a href="#!" class="float-right" data-delete><i class="fas fa-times"></i></a>
+
+                <h5 class="text-primary" data-name>Producto</h5>
+
+                <!-- NUEVO: etiqueta de presentación -->
+                <div class="text-muted" style="font-size: 12px;" data-presentation_label></div>
+
+                <h6 style="color: #9e9e9e;" data-price data-stock></h6>
+
+                <div class="d-flex align-items-center justify-content-between w-100">
+                    <div class="def-number-input number-input safari_only">
+                        <button type="button" onclick="decrementQuantity(this)" data-item_key_minus class="minus"></button>
+
+                        <input class="quantity fw-bold bg-body-tertiary text-body large-input"
+                               data-quantity
+                               min="0"
+                               name="quantity"
+                               type="number"
+                               step="1">
+
+                        <button type="button" onclick="incrementQuantity(this)" data-item_key_plus class="plus"></button>
+                    </div>
+
+                    <p class="fw-bold mb-0 me-5 pe-3" data-priceTotal>0.00</p>
+                </div>
+
+                <div class="align-items-center justify-content-between">
+                    <h6 class="text-success" data-discount></h6>
+                </div>
+
                 <hr class="mb-4" style="height: 0.8px; background-color: #9e9e9e; opacity: 1;">
             </div>
         </div>

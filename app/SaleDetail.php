@@ -9,8 +9,11 @@ class SaleDetail extends Model
     protected $fillable = [
         'sale_id',
         'material_id',
+        'material_presentation_id',
         'price',
         'quantity',
+        'packs',
+        'units_per_pack',
         'percentage_tax',
         'total',
         'discount'
@@ -24,5 +27,10 @@ class SaleDetail extends Model
     public function material()
     {
         return $this->belongsTo('App\Material');
+    }
+
+    public function materialPresentation()
+    {
+        return $this->belongsTo(MaterialPresentation::class, 'material_presentation_id');
     }
 }

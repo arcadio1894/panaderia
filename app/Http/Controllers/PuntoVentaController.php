@@ -9,6 +9,7 @@ use App\Category;
 use App\DataGeneral;
 use App\Item;
 use App\Mail\StockLowNotificationMail;
+use App\MaterialPresentation;
 use App\Output;
 use App\OutputDetail;
 use App\PorcentageQuote;
@@ -197,7 +198,6 @@ class PuntoVentaController extends Controller
 
     public function store(Request $request)
     {
-        //dd($request);
         $begin = microtime(true);
         $workerDefault = Worker::where('user_id', Auth::user()->id)->first();
         $workerId = $request->input('worker_id');
@@ -210,17 +210,55 @@ class PuntoVentaController extends Controller
 
             // Validar que haya stock suficiente para todos los productos ANTES de crear la venta
             foreach ($items as $item) {
-                $material = Material::find($item->productId);
+
+                $materialId = (int) $item->productId;
+
+                $material = Material::find($materialId);
                 if (!$material) {
-                    throw new \Exception("Material con ID {$item->productId} no encontrado.");
+                    throw new \Exception("Material con ID {$materialId} no encontrado.");
                 }
 
-                /*$currentQuantityStore = StoreMaterial::where('material_id', $material->id)
-                    ->sum('stock_current');*/
-                $currentQuantityStore = $material->stock_current;
+                $currentQuantityStore = (float) $material->stock_current;
 
-                if ($currentQuantityStore < $item->productQuantity) {
-                    throw new \Exception("Stock insuficiente para el producto '{$material->description}'. Disponible: {$material->stock_current}, requerido: {$item->productQuantity}");
+                $presentationId = $item->presentationId ?? null;
+
+                // ✅ calcular unidades a descontar (SIEMPRE server-side)
+                if (!empty($presentationId)) {
+
+                    $packs = (int) ($item->productQuantity ?? 0);
+                    if ($packs < 1) {
+                        throw new \Exception("Cantidad de paquetes inválida para el producto '{$material->description}'.");
+                    }
+
+                    $presentation = MaterialPresentation::where('id', $presentationId)
+                        ->where('material_id', $materialId)
+                        ->where('active', 1)
+                        ->first();
+
+                    if (!$presentation) {
+                        throw new \Exception("La presentación seleccionada no es válida o no pertenece al material '{$material->description}'.");
+                    }
+
+                    $unitsPerPack = (int) $presentation->quantity;
+                    if ($unitsPerPack < 1) {
+                        throw new \Exception("La presentación tiene cantidad inválida para el material '{$material->description}'.");
+                    }
+
+                    $units = $packs * $unitsPerPack; // ✅ unidades reales que se descuentan
+
+                } else {
+
+                    $units = (float) ($item->productQuantity ?? 0);
+                    if ($units <= 0) {
+                        throw new \Exception("Cantidad inválida para el producto '{$material->description}'.");
+                    }
+                }
+
+                if ($currentQuantityStore < $units) {
+                    throw new \Exception(
+                        "Stock insuficiente para el producto '{$material->description}'. " .
+                        "Disponible: {$material->stock_current}, requerido: {$units}"
+                    );
                 }
             }
 
@@ -258,8 +296,8 @@ class PuntoVentaController extends Controller
                 'currency' => 'PEN',
                 'op_exonerada' => $request->get('total_exonerada'),
                 'op_inafecta' => 0,
-                'op_gravada' => $request->get('total_igv'),
-                'igv' => $request->get('total_gravada'),
+                'op_gravada' => $request->get('total_gravada'),
+                'igv' => $request->get('total_igv'),
                 'total_descuentos' => $request->get('total_descuentos'),
                 'importe_total' => $request->get('total_importe'),
                 'vuelto' => $request->get('total_vuelto'),
@@ -295,8 +333,6 @@ class PuntoVentaController extends Controller
                 $sale->save();
             }
 
-            //$items = json_decode($request->get('items'));
-
             // ✅ Crear UNA sola salida (Output) para toda la venta
             $output = Output::create([
                 'execution_order'  => "VENTA DE POS",
@@ -307,82 +343,62 @@ class PuntoVentaController extends Controller
                 'indicator'        => 'or',
             ]);
 
-            /*for ( $i=0; $i<sizeof($items); $i++ )
-            {
-                $saleDetail = SaleDetail::create([
-                    'sale_id' => $sale->id,
-                    'material_id' => $items[$i]->productId,
-                    'price' => $items[$i]->productPrice,
-                    'quantity' => $items[$i]->productQuantity,
-                    'percentage_tax' => $items[$i]->productTax,
-                    'total' => $items[$i]->productTotal,
-                    'discount' => $items[$i]->productDiscount,
-                ]);
+            for ($i = 0; $i < sizeof($items); $i++) {
 
-                // TODO: Actualizar stock
-                // TODO: Actualizar el stock del storeMaterial con la ubicacion que se este enviando
-                $material = Material::find($items[$i]->productId);
-                //$material->stock_current = $material->stock_current - $items[$i]->productQuantity;
-                //$material->save();
+                $presentationId = $items[$i]->presentationId ?? null;
+                $packs = null;
+                $unitsPerPack = null;
 
-                $cantidadVendida = $items[$i]->productQuantity;
-                $storeMaterials = StoreMaterial::where('material_id', $material->id)
-                    ->orderBy('id') // Opcional: para tener un orden consistente
-                    ->get();
-
-                foreach ($storeMaterials as $storeMaterial) {
-                    if ($cantidadVendida <= 0) {
-                        break;
+                // Si viene presentación, entonces productQuantity = packs
+                if (!empty($presentationId)) {
+                    $packs = (int) ($items[$i]->productQuantity ?? 0);
+                    if ($packs < 1) {
+                        throw new \Exception("Cantidad de paquetes inválida para el producto ID {$items[$i]->productId}.");
                     }
 
-                    $stockDisponible = $storeMaterial->stock_current; // Asumimos que esta columna representa el stock actual
+                    // Traer presentación real y usar su quantity (cantidad por pack)
+                    $presentation = MaterialPresentation::where('id', $presentationId)
+                        ->where('material_id', $items[$i]->productId)
+                        ->where('active', 1)
+                        ->first();
 
-                    if ($stockDisponible >= $cantidadVendida) {
-                        // Descontamos solo lo que queda
-                        $storeMaterial->stock_current -= $cantidadVendida;
-                        $storeMaterial->save();
-                        $cantidadVendida = 0;
-                    } else {
-                        // Descontamos todo el stock de este storeMaterial
-                        $cantidadVendida -= $stockDisponible;
-                        $storeMaterial->stock_current = 0;
-                        $storeMaterial->save();
+                    if (!$presentation) {
+                        throw new \Exception("La presentación seleccionada no es válida o no pertenece al material ID {$items[$i]->productId}.");
+                    }
+
+                    $unitsPerPack = (int) $presentation->quantity; // 👈 fuente de verdad
+                    if ($unitsPerPack < 1) {
+                        throw new \Exception("La presentación tiene cantidad inválida.");
+                    }
+
+                    $unitsEquivalent = $packs * $unitsPerPack; // ✅ REGLA FINAL
+                } else {
+                    // venta unitaria (o decimal si aplica)
+                    $unitsEquivalent = (float) ($items[$i]->productQuantity ?? 0);
+                    if ($unitsEquivalent <= 0) {
+                        throw new \Exception("Cantidad inválida para el producto ID {$items[$i]->productId}.");
                     }
                 }
-
-                $storeMaterialFinal = StoreMaterial::where('material_id', $material->id)
-                    ->orderBy('id') // Opcional: para tener un orden consistente
-                    ->sum('stock_current');
-
-                $storeMaterialMinData = DataGeneral::where('name', 'store_material_min')->first();
-
-                //$storeMaterialMin = $storeMaterialMinData->valueNumber;
-
-                //if ($storeMaterialFinal <= $storeMaterialMin)
-                //{
-                    // TODO: Crear notificaciones
-                    //$this->manageNotifications($material);
-                //}
-
-                //$this->manageNotifications($material);
-            }*/
-            for ($i = 0; $i < sizeof($items); $i++) {
 
                 // ==========================================
                 // 1. Crear SaleDetail (NO CAMBIA)
                 // ==========================================
+                $unitPrice = $items[$i]->productTotal / $unitsEquivalent;
                 $saleDetail = SaleDetail::create([
                     'sale_id'        => $sale->id,
                     'material_id'    => $items[$i]->productId,
-                    'price'          => $items[$i]->productPrice,
-                    'quantity'       => $items[$i]->productQuantity,
+                    'material_presentation_id' => $presentationId,
+                    'price'          => $unitPrice,
+                    'quantity'       => $unitsEquivalent, // ✅ unidades reales vendidas
+                    'packs'          => $packs,           // ✅ si hay presentación
+                    'units_per_pack' => $unitsPerPack,    // ✅ si hay presentación
                     'percentage_tax' => $items[$i]->productTax,
                     'total'          => $items[$i]->productTotal,
                     'discount'       => $items[$i]->productDiscount,
                 ]);
 
                 $material = Material::findOrFail($items[$i]->productId);
-                $cantidadVendida = (float) $items[$i]->productQuantity;
+                $cantidadVendida = (float) $unitsEquivalent;
 
                 // ==========================================
                 // 2. CASO ITEMEABLE (tipo_venta_id == 3)
@@ -422,7 +438,7 @@ class PuntoVentaController extends Controller
                             'quote_id'    => $sale->quote_id ?? null,
                             'custom'      => 0,
                             'percentage'  => 1, // 1 item = 1 unidad
-                            'price'       => (float) $items[$i]->productPrice,
+                            'price'       => $unitPrice,
                             'length'      => $item->length,
                             'width'       => $item->width,
                         ]);
@@ -470,39 +486,6 @@ class PuntoVentaController extends Controller
                     $cantidadParaStore = $cantidadVendida;
                 }
 
-                // ==========================================
-                // 4. DESCONTAR StoreMaterial (AMBOS CASOS)
-                // ==========================================
-                /*if ($cantidadParaStore > 0) {
-
-                    $restante = $cantidadParaStore;
-
-                    $storeMaterials = StoreMaterial::where('material_id', $material->id)
-                        ->orderBy('id')
-                        ->lockForUpdate()
-                        ->get();
-
-                    foreach ($storeMaterials as $storeMaterial) {
-                        if ($restante <= 0) {
-                            break;
-                        }
-
-                        $stockDisponible = (float) $storeMaterial->stock_current;
-
-                        if ($stockDisponible >= $restante) {
-                            $storeMaterial->stock_current = $stockDisponible - $restante;
-                            $storeMaterial->save();
-                            $restante = 0;
-                        } else {
-                            $storeMaterial->stock_current = 0;
-                            $storeMaterial->save();
-                            $restante -= $stockDisponible;
-                        }
-                    }
-
-                    // Notificación de stock bajo
-                    $this->manageNotifications($material);
-                }*/
             }
 
             // Agregar movimientos a la caja
@@ -629,7 +612,12 @@ class PuntoVentaController extends Controller
             DB::commit();
         } catch ( \Throwable $e ) {
             DB::rollBack();
-            return response()->json(['message' => $e->getMessage()], 422);
+            return response()->json([
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+                'trace'   => collect($e->getTrace())->take(8), // para no mandar 5000 líneas
+            ], 422);
         }
         return response()->json(['message' => 'Venta guardada con éxito.',
             'sale_id' => $sale->id,

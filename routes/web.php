@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use \App\Http\Controllers\MetaController;
 use \App\Http\Controllers\MaterialDetailSettingController;
+use \App\Http\Controllers\MaterialPresentationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -2988,6 +2989,23 @@ Route::middleware('auth')->group(function (){
                 )->name('settings.material-details.store');
 
             });
+
+        Route::prefix('materials-presentations/')->group(function () {
+            Route::get('material/{material}/presentations', [MaterialPresentationController::class, 'index'])
+                ->name('material-presentations.index');
+
+            Route::post('material/{material}/presentations', [MaterialPresentationController::class, 'store'])
+                ->name('material-presentations.store');
+
+            Route::put('presentation/{presentation}', [MaterialPresentationController::class, 'update'])
+                ->name('material-presentations.update');
+
+            Route::delete('presentation/{presentation}', [MaterialPresentationController::class, 'destroy'])
+                ->name('material-presentations.destroy');
+
+            Route::patch('presentation/{presentation}/toggle', [MaterialPresentationController::class, 'toggle'])
+                ->name('material-presentations.toggle');
+        });
     });
 });
 

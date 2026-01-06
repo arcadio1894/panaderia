@@ -491,7 +491,8 @@
                 <button data-precioDirecto data-material="{{--'+item.id+'--}}" data-description="{{--'+item.full_description+'--}}" class="btn btn-outline-success btn-sm" data-toggle="tooltip" data-placement="top" title="Gestionar precios"><i class="fas fa-tag"></i> </button>
                 <button data-separate data-material="" data-quantity data-description="" data-measure="" class="btn btn-outline-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Separar Paquete"><i class="far fa-object-ungroup"></i></button>
                 <button data-assign_child data-material="" data-description="" class="btn btn-outline-success btn-sm" data-toggle="tooltip" data-placement="top" title="Asignar Hijos"><i class="fas fa-boxes"></i></button>
-                <button data-show_vencimiento data-material="" data-description="" class="btn btn-outline-success btn-sm" data-toggle="tooltip" data-placement="top" title="Ver fechas"><i class="fas fa-boxes"></i></button>
+                <button data-show_vencimiento data-material="" data-description="" class="btn btn-outline-success btn-sm" data-toggle="tooltip" data-placement="top" title="Ver fechas"><i class="fas fa-calendar-alt"></i></button>
+                <button data-manage_presentations data-material="" data-description="" class="btn btn-outline-success btn-sm" data-toggle="tooltip" data-placement="top" title="Configurar presentaciones"><i class="fas fa-cubes"></i></button>
 
                 {{--<a data-send_store href="" class="btn btn-outline-info btn-sm" data-toggle="tooltip" data-placement="top" title="Enviar a tienda"><i class="fas fa-share"></i> </a>
 --}}
@@ -707,6 +708,27 @@
     </div>
 
     <!-- Modal para ver vencimientos -->
+    <div class="modal fade" id="modalPresentaciones" tabindex="-1" role="dialog" aria-labelledby="modalPresentacionesLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalPresentacionesLabel">
+                        Gestionar presentaciones <span class="text-muted" id="mp-material-title"></span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="presentaciones-content">
+                        <!-- Aquí se llenarán las fechas -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ver vencimientos -->
     <div class="modal fade" id="modalVencimientos" tabindex="-1" role="dialog" aria-labelledby="modalVencimientosLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
@@ -785,6 +807,79 @@
 @endsection
 
 @section('scripts')
+    <script type="text/template" id="tpl-mp-wrapper">
+        <div class="mb-3 p-2 border rounded">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <strong>Nueva presentación</strong>
+                    <div class="text-muted" style="font-size:12px;">Agrega cantidad y precio. Ej: 12 unidades con descuento.</div>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" data-mp-refresh>
+                    <i class="fas fa-sync"></i> Recargar
+                </button>
+            </div>
+
+            <div class="form-row mt-2">
+                <div class="form-group col-md-4">
+                    <label class="mb-1">Cantidad</label>
+                    <input type="number" step="0.0001" min="0" class="form-control form-control-sm" data-mp-new-quantity>
+                </div>
+                <div class="form-group col-md-4">
+                    <label class="mb-1">Precio</label>
+                    <input type="number" step="0.01" min="0" class="form-control form-control-sm" data-mp-new-price>
+                </div>
+                <div class="form-group col-md-4 d-flex align-items-end">
+                    <button class="btn btn-success btn-sm w-100" data-mp-create>
+                        <i class="fas fa-plus"></i> Crear
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mp-list"></div>
+    </script>
+
+    <script type="text/template" id="tpl-mp-row">
+        <div class="p-2 border rounded mb-2 {row_class}" data-mp-row data-id="{id}" data-active="{active}">
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label class="mb-1">Cantidad</label>
+                    <input type="number" step="1" min="1" class="form-control form-control-sm" data-mp-quantity value="{quantity}" disabled>
+                </div>
+
+                <div class="form-group col-md-4">
+                    <label class="mb-1">Precio</label>
+                    <input type="number" step="0.01" min="0" class="form-control form-control-sm" data-mp-price value="{price}" disabled>
+                </div>
+
+                <div class="form-group col-md-4 d-flex align-items-end">
+                    <div class="w-100">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge {badge_class}" data-mp-status>{status_text}</span>
+                        </div>
+
+                        <div class="btn-group w-100" role="group">
+                            <button class="btn btn-outline-primary btn-sm" data-mp-edit {edit_disabled}>
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+
+                            <button class="btn btn-primary btn-sm d-none" data-mp-save>
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
+
+                            <button class="btn btn-outline-secondary btn-sm d-none" data-mp-cancel>
+                                Cancelar
+                            </button>
+
+                            <button class="btn {toggle_btn_class} btn-sm" data-mp-toggle>
+                                {toggle_text}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
     <script>
         $(function () {
             //Initialize Select2 Elements

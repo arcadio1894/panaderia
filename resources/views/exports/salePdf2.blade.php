@@ -55,14 +55,41 @@
 
     @forelse ($sale->details as $detail)
         @php
-            $qty   = (float)$detail->quantity;
-            $total = round($detail->total, 2);
+            $total  = number_format($detail->total, 2, '.', '');
             $nombre = $detail->material->full_name;
+
+            $hasPresentation = !empty($detail->material_presentation_id)
+                && !empty($detail->packs)
+                && !empty($detail->units_per_pack);
+
+            if ($hasPresentation) {
+                $presentationText = (int) $detail->units_per_pack . 'und';
+                $qtyToShow = (int) $detail->packs;
+            } else {
+                $presentationText = '1und';
+                $qtyToShow = rtrim(rtrim(number_format($detail->quantity,2,'.',''),'0'),'.');
+            }
+
+            $line = $nombre . ' (' . $presentationText . ') X ' . $qtyToShow;
+
+            $maxChars = 27;
+            $line1 = mb_substr($line, 0, $maxChars);
+            $line2 = mb_substr($line, $maxChars);
         @endphp
-        <p class="bold" style="font-size: 11px;">
-            {{ $nombre }} x {{ rtrim(rtrim(number_format($qty,2,'.',''), '0'),'.') }}
-            <span style="float:right;">S/ {{ number_format($total, 2, '.', '') }}</span>
+
+        {{-- Línea principal con precio --}}
+        <p class="bold" style="font-size:11px; margin-bottom:0;">
+            {{ $line1 }}
+            <span style="float:right;">S/ {{ $total }}</span>
         </p>
+
+        {{-- Resto del texto si excede --}}
+        @if(mb_strlen($line2) > 0)
+            <p class="bold" style="font-size:11px; margin-top:0; ">
+                {{ $line2 }}
+            </p>
+        @endif
+
     @empty
         <p class="muted">— Sin productos registrados —</p>
     @endforelse
