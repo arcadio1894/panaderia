@@ -494,6 +494,21 @@ var $modalPrecioPercentage;
 var $formPrecioDirecto;
 var $formPrecioPorcentaje;
 
+// Función para calcular el color basado en la fecha
+function calcularColor(fechaVencimiento) {
+    var hoy = new Date();
+    var vencimiento = new Date(fechaVencimiento);
+    var diferencia = (vencimiento - hoy) / (1000 * 60 * 60 * 24); // en días
+
+    if(diferencia < 0) {
+        return 'danger'; // rojo
+    } else if(diferencia <= 5) {
+        return 'warning'; // amarillo
+    } else {
+        return 'success'; // verde
+    }
+}
+
 function tpl(id, data) {
     let html = $(id).html();
     Object.keys(data || {}).forEach(k => {
